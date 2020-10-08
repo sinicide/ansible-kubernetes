@@ -1,0 +1,14 @@
+---
+- name: Install OS Packages
+  apt:
+    name: "{{item}}"
+    update_cache: yes
+    state: present
+  loop: "{{apt_os_packages}}"
+  when:
+    - ansible_os_family == "Debian"
+
+# set os timezone
+- name: Set Timezone
+  timezone:
+    name: "{{vm_timezone}}"

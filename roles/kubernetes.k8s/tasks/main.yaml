@@ -1,0 +1,29 @@
+---
+- name: Add Kubernetes Apt Key
+  apt_key:
+    url: "https://packages.cloud.google.com/apt/doc/apt-key.gpg"
+    state: present
+  when:
+    - ansible_os_family == "Debian"
+
+- name: Add Kubernetes Repository
+  apt_repository:
+    repo: "deb https://apt.kubernetes.io/ kubernetes-xenial main"
+    state: present
+  when:
+    - ansible_os_family == "Debian"
+
+- name: Install kubernetes components
+  apt:
+    name: "{{item}}={{kubernetes_version}}"
+  loop: "{{kubernetes_packages}}"
+  when:
+    - ansible_os_family == "Debian"
+
+- name: mark hold kubernetes packages
+  shell: sudo apt-mark hold {{item}}
+  args:
+    executable: "/bin/bash"
+  loop: "{{kubernetes_packages}}"
+  when:
+    - ansible_os_family == "Debian"

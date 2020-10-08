@@ -1,0 +1,12 @@
+apt_os_packages:
+  - apt-transport-https
+  - ca-certificates
+  - curl
+  - gnupg-agent
+  - software-properties-common
+  - qemu-guest-agent
+  - vim
+  - iputils-ping
+  - dnsutils
+
+vm_timezone: "America/Chicago"

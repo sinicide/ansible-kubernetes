@@ -1,0 +1,44 @@
+---
+- name: Add Docker Apt Key
+  apt_key:
+    url: "https://download.docker.com/linux/ubuntu/gpg"
+    state: present
+  when:
+    - ansible_os_family == "Debian"
+    
+- name: Add Docker Repository
+  apt_repository:
+    repo: "deb [arch=amd64] https://download.docker.com/linux/ubuntu focal stable"
+    state: present
+  when:
+    - ansible_os_family == "Debian"
+
+- name: Install Container Runtime
+  apt:
+    name: "{{item}}"
+    state: present
+  loop: "{{docker_packages}}"
+  when:
+    - ansible_os_family == "Debian"
+    
+- name: Copy Docker Daemon Over
+  copy:
+    src: "files/daemon.json"
+    dest: "/etc/docker/daemon.json"
+    owner: root
+    group: root
+    mode: '0644'
+    
+- name: Create Docker Service
+  file:
+    path: "/etc/systemd/system/docker.service.d"
+    state: directory
+    owner: root
+    group: root
+    mode: '0755'
+
+- name: Restarting Docker Daemon
+  systemd:
+    name: docker
+    state: restarted
+    daemon_reload: yes

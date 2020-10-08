@@ -1,0 +1,8 @@
+# Docker version to install
+docker_ce_version: ""
+containerd_version: ""
+
+docker_packages:
+  - docker-ce
+  - docker-ce-cli
+  - containerd.io

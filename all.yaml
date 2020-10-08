@@ -1,0 +1,21 @@
+---
+- name: Prequisites
+  hosts: controlplanes:workers
+  tasks:
+    - import_role:
+        name: os.common
+
+    - import_role:
+        name: kubernetes.containerruntime
+
+    # Installing K8s
+    - import_role:
+        name: kubernetes.k8s
+      when:
+        - (install_k3s is not defined) or (install_k3s|bool == False)
+
+    # Installing K3s
+    - import_role:
+        name: kubernetes.k3s
+      when:
+        - (install_k3s is defined) and (install_k3s|bool == True)
