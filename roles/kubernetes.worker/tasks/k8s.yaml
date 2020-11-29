@@ -1,0 +1,15 @@
+---
+# TODO:
+# [ ] Need a check to see if worker is already joined, if so skip this step, check /etc/kubernetes/kubelet.conf
+
+- name: Check on kubelet status
+  systemd:
+    name: kubelet
+  register: kubelet_status
+
+#- debug:
+#    msg: "{{ kubelet_status.status.ActiveState }}"
+
+- name: Running Join Command on Worker Nodes
+  command: "{{ hostvars['dummy_node']['join_command'] }}"
+  when: (kubelet_status.status.ActiveState != 'active')

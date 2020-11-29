@@ -13,17 +13,20 @@
   when:
     - ansible_os_family == "Debian"
 
-- name: Install kubernetes components
+- name: Install Kubernetes Components
   apt:
-    name: "{{item}}={{kubernetes_version}}"
-  loop: "{{kubernetes_packages}}"
+    name: "{{item}}={{k8s_version}}"
+    state: present
+    update_cache: yes
+  loop: "{{k8s_packages}}"
   when:
     - ansible_os_family == "Debian"
 
-- name: mark hold kubernetes packages
-  shell: sudo apt-mark hold {{item}}
+- name: Mark Hold Kubernetes Components
+  shell: apt-mark hold {{item}}
+  become: yes
   args:
     executable: "/bin/bash"
-  loop: "{{kubernetes_packages}}"
+  loop: "{{k8s_packages}}"
   when:
     - ansible_os_family == "Debian"

@@ -1,0 +1,17 @@
+---
+- name: Copying over ENV file
+  template:
+    src: "../templates/k3s_env.j2"
+    dest: "{{k3s_system_env}}"
+    owner: root
+    group: root
+    mode: '0644'
+  when: (k3s_token is defined) and (k3s_url is defined)
+
+- include_role:
+    name: kubernetes.k3s
+  vars:
+    exec_args: "{{ k3s_exec_args }}"
+    service_type: "exec"
+    env_file: "{{ k3s_system_env }}"
+  when: (k3s_token is defined)

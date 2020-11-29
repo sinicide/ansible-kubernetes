@@ -1,0 +1,2 @@
+env_file: ""
+k3s_system_service: "/etc/systemd/system/k3s.service"

@@ -1,0 +1,17 @@
+---
+- name: Download k3s Binary
+  get_url: 
+    url: "{{k3s_binary_download_url}}"
+    dest: "{{k3s_bin_dir}}/k3s"
+    mode: '0755'
+
+# 1.5 verify k3s command runs as expected?
+
+# 2. Create symlinks for kubectl
+- name: Create symlink for kubectl
+  file:
+    src: "{{k3s_bin_dir}}/k3s"
+    dest: "/usr/bin/kubectl"
+    owner: root
+    group: root
+    state: link

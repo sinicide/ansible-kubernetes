@@ -1,0 +1,7 @@
+---
+# TODO:
+# [ ] Verify if we need to apply this or not
+
+- name: Install Container Networking Provider
+  become: no
+  command: "kubectl --kubeconfig {{ kube_config }} apply -f {{ container_networking_provider }}"

@@ -1,1 +1,27 @@
 ---
+- name: Check if service exists
+  stat:
+    path: "{{ k3s_system_service }}"
+  register: k3s_service_status
+
+- name: Stopping k3s service
+  systemd:
+    name: k3s.service
+    state: stopped
+    enabled: no
+  when: k3s_service_status.stat.exists
+
+- name: Installing k3s service
+  template:
+    src: "../templates/k3s-systemd.j2"
+    dest: "{{ k3s_system_service }}"
+    owner: root
+    group: root
+    mode: '0744'
+
+- name: Enabling k3s service
+  systemd:
+    name: k3s.service
+    state: started
+    enabled: yes
+    daemon-reload: yes

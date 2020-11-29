@@ -1,0 +1,21 @@
+---
+- include_role:
+    name: kubernetes.k3s
+  vars:
+    exec_args: "{{ k3s_exec_args }}"
+    service_type: "{{ k3s_service_type }}"
+
+- include_tasks: copy_kube_config.yaml
+
+- include_role:
+    name: kubernetes.cni
+    
+- name: Copying Join Code
+  shell: cat {{ k3s_token_path }}
+  register: k3s_token
+
+- name: Register controlplane and token
+  add_host:
+    name: "dummy_node"
+    token: "{{ k3s_token.stdout }}"
+    control_plane: "{{ control_plane_endpoint }}"

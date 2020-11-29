@@ -1,0 +1,42 @@
+---
+# TODO:
+# [ ] Gather facts for current kubernetes controlplane deployment
+# [ ] Add a config update for master node (if changing apiserver-address, cert, or cidr range)
+# [ ] Skip or update the kubernetes Container Network Interface add
+# [ ] Separate out the Join Command to a separate play
+
+# is there already a running kubernetes node
+- name: Check on kubelet status
+  systemd:
+    name: kubelet
+  register: kubelet_status
+
+#- debug:
+#    msg: "{{ kubelet_status.status.ActiveState }}"
+# status are "active" or "inactive" or "activating"
+
+- name: Initialize the Kubernetes Cluster (kubeadm)
+  shell: "kubeadm init --apiserver-advertise-address={{ ansible_default_ipv4.address }} --apiserver-cert-extra-sans={{ ansible_default_ipv4.address }}  --pod-network-cidr={{ cluster_cidr_range }}" 
+  become: yes
+  args:
+    executable: "/bin/bash"
+  when: (kubelet_status.status.ActiveState != 'active')
+
+# copy kube config to the default user, allows you to run kubectl without manually have to copy your config over
+- include_tasks: copy_kube_config.yaml
+
+# Apply our Kubernetes CNI
+- include_role:
+    name: kubernetes.cni
+
+- name: Generate join command
+  shell: "kubeadm token create --description ansible-generated --ttl 1h --print-join-command"
+  become: yes
+  args:
+    executable: "/bin/bash"
+  register: k8s_join_command
+
+- name: Register Join Command
+  add_host:
+    name: "dummy_node"
+    join_command: "{{ k8s_join_command.stdout_lines[0] }}"

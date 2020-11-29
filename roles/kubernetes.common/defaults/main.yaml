@@ -1,0 +1,14 @@
+# k8s
+k8s_version: "1.19.2-00"
+# ordering here is important as kubeadm will install kubelet and kubectl as dependencies
+k8s_packages:
+  - kubelet
+  - kubectl
+  - kubeadm
+
+# k3s
+k3s_github_url: "https://github.com/rancher/k3s/releases"
+k3s_version: "v1.19.2+k3s1"
+k3s_bin_dir: "/usr/bin"
+k3s_suffix: "{{ 'arch_arm64' if (ansible_architecture == 'arm64') else '' }}"
+k3s_binary_download_url: "{{k3s_github_url}}/download/{{k3s_version}}/k3s{{k3s_suffix}}"

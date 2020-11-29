@@ -1,21 +1,38 @@
 ---
+# Install OS common packages and configuration
 - name: Prequisites
+  tags: common
   hosts: controlplanes:workers
   tasks:
     - import_role:
         name: os.common
-
+  
+# Install Container Runtime
+- name: Installing Container Runtime
+  tags: cri
+  hosts: controlplanes:workers
+  tasks:
     - import_role:
         name: kubernetes.containerruntime
-
-    # Installing K8s
+  
+# Install Kubernetes (k3s/k8s)
+- name: Installing Kubernetes
+  tags: kubernetes
+  hosts: controlplanes:workers
+  tasks:
     - import_role:
-        name: kubernetes.k8s
-      when:
-        - (install_k3s is not defined) or (install_k3s|bool == False)
-
-    # Installing K3s
+        name: kubernetes.common
+    
+# Configure Control Plane Node
+- name: Configuring Control Plane Nodes
+  hosts: controlplanes
+  tasks:
     - import_role:
-        name: kubernetes.k3s
-      when:
-        - (install_k3s is defined) and (install_k3s|bool == True)
+        name: kubernetes.controlplane
+
+# Configurat Worker Nodes
+- name: Configuring Worker Nodes
+  hosts: workers
+  tasks:
+    - import_role:
+        name: kubernetes.worker

@@ -1,0 +1,7 @@
+---
+# k8s.yaml
+- include_tasks: k8s.yaml
+  when: (install_k3s is not defined) or (install_k3s|bool == False)
+# k3s.yaml
+- include_tasks: k3s.yaml
+  when: (install_k3s is defined) and (install_k3s|bool == True)

@@ -28,6 +28,7 @@
     owner: root
     group: root
     mode: '0644'
+  when: (install_k3s is not defined) or (install_k3s|bool == False)
     
 - name: Create Docker Service
   file:
@@ -36,9 +37,11 @@
     owner: root
     group: root
     mode: '0755'
+  when: (install_k3s is not defined) or (install_k3s|bool == False)
 
 - name: Restarting Docker Daemon
   systemd:
     name: docker
     state: restarted
     daemon_reload: yes
+  when: (install_k3s is not defined) or (install_k3s|bool == False)
