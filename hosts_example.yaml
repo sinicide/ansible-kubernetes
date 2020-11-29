@@ -1,0 +1,27 @@
+---
+all:
+  vars:
+    ansible_user: '<user>'
+    ansible_ssh_private_key_file: '/path/to/private.pem'
+    ansible_become: yes
+
+    # uncomment and set to true to deploy k3s instead of k8s
+    #install_k3s: true
+
+    # kubernetes cidr range
+    cluster_cidr_range: "10.10.0.0/16"
+    #service_cidr_range: "10.10.0.0/16"
+
+    # control plane port (default = 6443), can be omitted
+    # bind_address
+    #api_advertised_address: "0.0.0.0"
+    #api_advertised_port: "6443"
+
+controlplanes:
+  hosts:
+    kube-pod-master-1.sin.lan:
+
+workers:
+  hosts:
+    kube-pod-worker-1.sin.lan:
+    kube-pod-worker-2.sin.lan:
