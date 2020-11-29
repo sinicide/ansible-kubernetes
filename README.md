@@ -2,14 +2,14 @@
 Ansible Playbook for a Green Field Deployment Kubernetes Cluster (k3s or k8s)
 
 # TODO
-- [ ] Role for setting up OS
-- [ ] Role for installing and configuring Container Runtime
-- [ ] Role for installing kubernetes (k8s)
-- [ ] Role for installing kubernetes (k3s)
-- [ ] Role for deploying kubernetes cluster (controlplane)
-- [ ] Role for installing CNI (Calico)
+- [x] Role for setting up OS
+- [x] Role for installing and configuring Container Runtime
+- [x] Role for installing kubernetes (k8s)
+- [x] Role for installing kubernetes (k3s)
+- [x] Role for deploying kubernetes cluster (controlplane)
+- [x] Role for installing CNI (Calico)
 - [ ] Role for installing MetalLb
-- [ ] Role for deploying kubernetes worker node
+- [x] Role for deploying kubernetes worker node
 - [ ] Grab the kube config file and store locally?
 
 # Running Playbook
