@@ -6,3 +6,12 @@ docker_packages:
   - docker-ce
   - docker-ce-cli
   - containerd.io
+
+# set arch, ansible_architecture: x86_64 = amd64, if aarch64 = amd
+# need to form the repo line
+# deb [arch=amd64] https://download.docker.com/linux/ubuntu {{ ansible_distribution_release }} stable
+arch: "{% if ansible_architecture == 'armhf' %}armhf{% elif ansible_architecture == 'aarch64' %}arm64{% else %}amd64{% endif %}"
+#distro: "{{ ansible_distribution_release }}"
+
+# workaround for docker-ce on focal release of ubuntu
+distro: "{% if arch == 'arm64' %}eoan{% else %}{{ ansible_distribution_release }}{% endif %}"

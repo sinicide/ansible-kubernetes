@@ -15,3 +15,15 @@
     owner: root
     group: root
     state: link
+
+- name: Check exists {{ cmdline_file }}
+  file:
+    path: "{{ cmdline_file }}"
+    state: file
+
+- name: Checking for {{ cmdline_arg }}
+  lineinfile:
+    path: "{{ cmdline_file }}"
+    regexp: "{{ cmdline_arg }}"
+    line: "{{ cmdline_arg }}"
+    state: present

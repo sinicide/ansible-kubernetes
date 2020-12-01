@@ -8,7 +8,7 @@
     
 - name: Add Docker Repository
   apt_repository:
-    repo: "deb [arch=amd64] https://download.docker.com/linux/ubuntu focal stable"
+    repo: "deb [arch={{ arch }}] https://download.docker.com/linux/ubuntu {{ distro }} stable"
     state: present
   when:
     - ansible_os_family == "Debian"
