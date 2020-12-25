@@ -1,8 +1,18 @@
 ---
+- name: Copying over ENV file
+  template:
+    src: "../templates/k3s_env.j2"
+    dest: "{{ k3s_system_env }}"
+    owner: root
+    group: root
+    mode: '0644'
+  when: (etcd.enabled is not defined) or (etcd.enabled|bool == True)
+
 - include_role:
     name: kubernetes.k3s
   vars:
     exec_args: "{{ k3s_exec_args }}"
+    env_file: "{{ k3s_system_env }}"
     service_type: "{{ k3s_service_type }}"
 
 - include_tasks: copy_kube_config.yaml
