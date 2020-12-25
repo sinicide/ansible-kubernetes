@@ -8,5 +8,7 @@ apt_os_packages:
   - vim
   - iputils-ping
   - dnsutils
+  - sysstat
+  - ntp
 
 vm_timezone: "America/Chicago"
