@@ -1,0 +1,4 @@
+---
+- name: stop etcd service
+  systemd:
+    state: stopped

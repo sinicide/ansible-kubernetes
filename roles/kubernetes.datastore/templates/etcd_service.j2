@@ -1,0 +1,18 @@
+[Unit]
+Description=etcd - highly-available key value store
+Documentation=https://github.com/coreos/etcd
+Documentation=man:etcd
+After=network.target
+Wants=network-online.target
+
+[Install]
+WantedBy=multi-user.target
+
+[Service]
+Type=notify
+EnvironmentFile={{ env_file }}
+User={{ etcd_user }}
+PermissionsStartOnly=true
+ExecStart={{ etcd_bin_path }}/etcd --config-file {{ etcd_config_file_path }}
+Restart=on-abnormal
+LimitNOFILE=65536

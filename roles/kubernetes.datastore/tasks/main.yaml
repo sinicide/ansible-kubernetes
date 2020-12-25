@@ -1,0 +1,115 @@
+---
+- name: Check for {{ etcd_bin_path }}/etcd
+  stat:
+    path: "{{ etcd_bin_path }}/etcd"
+  register: etcd_present
+
+- name: Check for {{ etcd_bin_path }}/etcdctl
+  stat:
+    path: "{{ etcd_bin_path }}/etcdctl"
+  register: etcdctl_present
+
+# if service exists, ensure we're stopping service
+- include_tasks: stop_etcd.yaml
+  when: ( etcd_present.stat.exists ) or ( etcdctl_present.stat.exists )
+
+- name: Download etcd Binary to /tmp
+  get_url:
+    url: "{{ etcd_download_url }}"
+    dest: "/tmp/etcd.tar.gz"
+    owner: root
+    group: root
+    mode: 0600
+    force: True
+  when: ( not etcd_present.stat.exists ) or ( not etcdctl_present.stat.exists )
+
+- name: Extract etcd and etcdctl
+  unarchive:
+    src: "/tmp/etcd.tar.gz"
+    dest: "/tmp/"
+    owner: root
+    group: root
+    mode: 0600
+    decrypt: True
+    remote_src: True
+
+- name: Copy etcd to /usr/bin
+  copy:
+    src: "/tmp/etcd-{{ etcd_version }}-linux-{{ arch }}/etcd"
+    dest: "/usr/bin/etcd"
+    owner: root
+    group: root
+    mode: '0755'
+    remote_src: yes
+
+- name: Copy etcdctl to /usr/bin
+  copy:
+    src: "/tmp/etcd-{{ etcd_version }}-linux-{{ arch }}/etcdctl"
+    dest: "/usr/bin/etcdctl"
+    owner: root
+    group: root
+    mode: '0755'
+    remote_src: yes
+
+- name: Clean up /tmp
+  file:
+    state: absent
+    path: "/tmp/etcd-{{ etcd_version }}-linux-{{ arch }}/"
+
+- name: Create etcd user
+  user:
+    name: "{{ etcd_user }}"
+    state: present
+    shell: "/sbin/nologin"
+    comment: "ETCD nologin user"
+  become: true
+
+- name: Create etcd data directory
+  file:
+    path: "{{ etcd_parameters.data_dir }}/{{ hostvars[inventory_hostname]['ansible_facts']['hostname'] }}.etcd"
+    state: directory
+    owner: "{{ etcd_user }}"
+    group: root
+
+- name: Create Service File
+  template:
+    src: "../templates/etcd_service.j2"
+    dest: "{{ etcd_system_service }}"
+    owner: root
+    group: root
+    mode: '0744'
+
+- name: Copying etcd.env File
+  template:
+    src: "../templates/etcd_env.j2"
+    dest: "{{ env_file }}"
+    owner: root
+    group: root
+    mode: '0744'
+
+- include_tasks: ssl_certs.yaml
+  
+- name: Copying etcd config
+  template:
+    src: "../templates/etcd_conf.j2"
+    dest: "{{ etcd_config_file_path }}"
+    owner: "{{ etcd_user }}"
+    group: root
+    mode: '0660'
+  notify: restart etcd service
+
+- name: set ETCDCTL_API environment variable to 3
+  lineinfile:
+    path: "/etc/profile"
+    line: "export ETCDCTL_API=3"
+    state: present
+    create: true
+    insertafter: EOF
+
+- name: Register etcd parameters for k3s
+  add_host:
+    name: "dummy_node"
+    etcd_k3s_endpoints: "{{ etcd_datastore_endpoints }}"
+    etcd_k3s_cafile: "{{ etcd_parameters.client_transport_security.trusted_ca_file }}"
+    etcd_k3s_certfile: "{{ etcd_parameters.client_transport_security.cert_file }}"
+    etcd_k3s_keyfile: "{{ etcd_parameters.client_transport_security.key_file }}"

@@ -1,0 +1,53 @@
+# ETCD Binary Version from https://github.com/etcd-io/etcd/releases
+etcd_version: "v3.3.13"
+arch: "{% if ansible_architecture == 'aarch64' %}arm64{% else %}amd64{% endif %}"
+etcd_download_url: "https://storage.googleapis.com/etcd/{{ etcd_version }}/etcd-{{ etcd_version }}-linux-{{ arch }}.tar.gz"
+etcd_bin_path: "/usr/bin"
+etcd_config_dir: "/etc/etcd"
+etcd_config_file_path: "/etc/etcd/etcd.conf.yaml"
+etcd_system_service: "/etc/systemd/system/etcd.service"
+etcd_user: "etcd"
+etcd:
+  secured: False
+
+env_file: "/etc/systemd/system/etcd.env"
+
+etcd_parameters:
+  client_port: "2379"
+  peer_port: "2380"
+  data_dir: "/var/lib/etcd"
+  listen_client_urls: ""
+  advertise_client_urls: ""
+  listen_peer_urls: ""
+  initial_advertise_peer_urls: ""
+  initial_cluster_token: "etcd-token"
+  initial_cluster_state: "new"
+  auto_compaction_retention: "1"
+  client_transport_security:
+    client_cert_auth: False
+    auto_tls: True
+    trusted_ca_file: "{{ etcd_config_dir }}/ssl/etcd.ca.crt"
+    cert_file: "{{ etcd_config_dir }}/ssl/etcd.client.crt"
+    key_file: "{{ etcd_config_dir }}/ssl/etcd.client.key"
+  peer_transport_security:
+    client_cert_auth: False
+    auto_tls: True
+    trusted_ca_file: "{{ etcd_config_dir }}/ssl/etcd.ca.crt"
+    cert_file: "{{ etcd_config_dir }}/ssl/etcd.peer.crt"
+    key_file: "{{ etcd_config_dir }}/ssl/etcd.peer.key"
+  heartbeat_interval: "300"
+  election_timeout: "1000"
+
+# building the initial-cluster list
+cp_hostnames: "{% for cp_hostname in groups['controlplanes'] %}{{ hostvars[cp_hostname]['ansible_facts']['hostname'] }}{% if not loop.last %},{% endif %}{% endfor%}"
+cp_ips: "{% for cp_ips in groups['controlplanes'] %}{{ hostvars[cp_ips]['ansible_default_ipv4']['address'] }}{% if not loop.last %},{% endif %}{% endfor %}"
+worker_hostnames: "{% for worker_hostname in groups['workers'] %}{{ hostvars[worker_hostname]['ansible_facts']['hostname'] }}{% if not loop.last %},{% endif %}{% endfor%}"
+worker_ips: "{% for worker_ips in groups['workers'] %}{{ hostvars[worker_ips]['ansible_default_ipv4']['address'] }}{% if not loop.last %},{% endif %}{% endfor %}"
+
+etcd_bootstrap_list: "{{ 'ignore' | etcd_bootstrap_builder(cp_hostnames, cp_ips, worker_hostnames, worker_ips, etcd_parameters.peer_port, etcd.secured) }}"
+
+cp_fqdn: "{% for cp_hostname in groups['controlplanes'] %}{{ hostvars[cp_hostname]['ansible_facts']['fqdn'] }}{% if not loop.last %},{% endif %}{% endfor%}"
+worker_fqdn: "{% for worker_hostname in groups['workers'] %}{{ hostvars[worker_hostname]['ansible_facts']['fqdn'] }}{% if not loop.last %},{% endif %}{% endfor%}"
+etcd_datastore_endpoints: "{{ 'ignore' | etcd_k3s_endpoint_builder(cp_fqdn, worker_fqdn, etcd_parameters.client_port, etcd.secured) }}"
+
+heath_check_url: "http{% if etcd.secured %}s{% endif %}://{{ inventory_hostname }}:{{ etcd_parameters.client_port }}/health"
