@@ -10,5 +10,6 @@ apt_os_packages:
   - dnsutils
   - sysstat
   - ntp
+  - jq
 
 vm_timezone: "America/Chicago"
