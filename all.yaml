@@ -14,7 +14,16 @@
   tasks:
     - import_role:
         name: kubernetes.containerruntime
-  
+        
+# Install etcd (when installing k3s)
+- name: Installing ETCD
+  tags: etcd
+  hosts: controlplanes:workers
+  tasks:
+    - import_role:
+        name: kubernetes.datastore
+      when: (install_k3s is defined) and (install_k3s|bool == True)
+
 # Install Kubernetes (k3s/k8s)
 - name: Installing Kubernetes
   tags: kubernetes
