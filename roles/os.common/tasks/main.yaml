@@ -12,3 +12,17 @@
 - name: Set Timezone
   timezone:
     name: "{{vm_timezone}}"
+
+# Disable swap
+- name: Removing swapfile from /etc/fstab
+  mount:
+    name: "{{ item }}"
+    fstype: swap
+    state: absent
+  with_items:
+    - swap
+    - none
+
+- name: Disable swap
+  shell: swapoff -a
+  when: ansible_swaptotal_mb > 0
