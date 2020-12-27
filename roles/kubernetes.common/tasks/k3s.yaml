@@ -5,9 +5,6 @@
     dest: "{{k3s_bin_dir}}/k3s"
     mode: '0755'
 
-# 1.5 verify k3s command runs as expected?
-
-# 2. Create symlinks for kubectl
 - name: Create symlink for kubectl
   file:
     src: "{{k3s_bin_dir}}/k3s"
@@ -16,14 +13,6 @@
     group: root
     state: link
 
-- name: Check exists {{ cmdline_file }}
-  file:
-    path: "{{ cmdline_file }}"
-    state: file
-
-- name: Checking for {{ cmdline_arg }}
-  lineinfile:
-    path: "{{ cmdline_file }}"
-    regexp: "{{ cmdline_arg }}"
-    line: "{{ cmdline_arg }}"
-    state: present
+# really only useful for raspberry pi here
+- name: Is this a Raspberry Pi?
+  include_tasks: raspberrypi.yaml
