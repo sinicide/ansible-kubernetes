@@ -36,7 +36,7 @@ etcd_parameters:
     cert_file: "{{ etcd_config_dir }}/ssl/etcd.peer.crt"
     key_file: "{{ etcd_config_dir }}/ssl/etcd.peer.key"
   heartbeat_interval: "300"
-  election_timeout: "1000"
+  election_timeout: "1500"
 
 # building the initial-cluster list
 cp_hostnames: "{% for cp_hostname in groups['controlplanes'] %}{{ hostvars[cp_hostname]['ansible_facts']['hostname'] }}{% if not loop.last %},{% endif %}{% endfor%}"
