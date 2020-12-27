@@ -26,6 +26,6 @@
 
 - name: Register controlplane and token
   add_host:
-    name: "dummy_node"
+    name: "dummy_k3s_node"
     token: "{{ k3s_token.stdout }}"
     control_plane: "{{ control_plane_endpoint }}"
