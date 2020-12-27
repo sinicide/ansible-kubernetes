@@ -10,7 +10,7 @@
   uri:
     body_format: "json"
     url: "{{ heath_check_url }}"
-    validate_certs: no
+    validate_certs: yes
     return_content: yes
   register: etcd_response
   failed_when: "'true' not in etcd_response.content"
