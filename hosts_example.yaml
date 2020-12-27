@@ -17,6 +17,22 @@ all:
     #api_advertised_address: "0.0.0.0"
     #api_advertised_port: "6443"
 
+    # k3s specific parameters
+    #k3s:
+    #  server_components:
+        # enabled (true) or disabled (false), default is false
+    #    coredns: true
+    #    servicelb: false
+    #    traefik: false
+    #    local_storage: false
+    #    metrics_server: true
+
+    # etcd configs
+    #etcd:
+      # enabled by default
+    #  enabled: true
+    #  secured: true
+
 controlplanes:
   hosts:
     kube-pod-master-1.sin.lan:
