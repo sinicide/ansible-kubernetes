@@ -1,0 +1,19 @@
+---
+- name: Check if Raspberry Pi 4 or newer
+  shell: "cat /proc/cpuinfo | grep -ic raspberry"
+  register: raspberry_cpu
+  ignore_errors: yes
+
+- name: Check exists {{ cmdline_file }}
+  file:
+    path: "{{ cmdline_file }}"
+    state: file
+  when: ( raspberry_cpu.stdout | int >= 1 )
+
+- name: Checking for {{ cmdline_arg }}
+  lineinfile:
+    path: "{{ cmdline_file }}"
+    regexp: "{{ cmdline_arg }}"
+    line: "{{ cmdline_arg }}"
+    state: present
+  when: ( raspberry_cpu.stdout | int >= 1 )
