@@ -30,5 +30,5 @@ peer-transport-security:
 {% endif %}
 auto-compaction-mode: periodic
 auto-compaction-retention: "{{ etcd_parameters.auto_compaction_retention }}"
-heartbeat-interval: "{{ etcd_parameters.heartbeat_interval }}"
-election-timeout: "{{ etcd_parameters.election_timeout }}"
+heartbeat-interval: {{ etcd_parameters.heartbeat_interval }}
+election-timeout: {{ etcd_parameters.election_timeout }}
