@@ -8,10 +8,7 @@
   systemd:
     name: kubelet
   register: kubelet_status
-
-#- debug:
-#    msg: "{{ kubelet_status.status.ActiveState }}"
-
+  
 # since kubelet is not active, we're assuming this node has not joined the cluster
 - name: Running Join Command on Worker Nodes
   command: "{{ hostvars['dummy_k8s_node']['join_command'] }}"
