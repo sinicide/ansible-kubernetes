@@ -2,6 +2,12 @@
 # TODO:
 # [ ] Verify if we need to apply this or not
 
+- name: Check for existing Calico DaemonSet
+  shell: "kubectl --kubeconfig {{ kube_config }} get DaemonSet -n kube-system | grep -ic calico-node | awk '{ print $1 }'"
+  become: no
+  register: calico_ds_count
+
 - name: Install Container Networking Provider
   become: no
   command: "kubectl --kubeconfig {{ kube_config }} apply -f {{ container_networking_provider }}"
+  when: "( calico_ds_count == 0 )"
