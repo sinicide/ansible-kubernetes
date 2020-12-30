@@ -1,4 +1,3 @@
-# TODO: clean up this file once k8s.yaml is done
 # defaults
 cp_host: "{{ ansible_fqdn | default(ansible_eth0.ipv4.address) }}"
 control_plane_port: "6443"
@@ -11,18 +10,18 @@ kube_user_config: "{% if install_k3s == true %}/etc/rancher/k3s/k3s.yaml{% else 
 
 # k3s specific
 k3s_bin_dir: "/usr/bin"
-#k3s_config_yaml: "/etc/rancher/k3s/k3s.yaml"
 k3s_cri_arg: "{% if container_runtime == 'docker' %} --{{ container_runtime }}{% else %} --containerd{% endif %}"
+k3s_server_coredns_enabled: "{{ k3s.server_components.coredns | default(false) }}"
+k3s_server_servicelb_enabled: "{{ k3s.server_components.servicelb | default(false) }}"
+k3s_server_traefik_enabled: "{{ k3s.server_components.traefik | default(false) }}"
+k3s_server_local_storage_enabled: "{{ k3s.server_components.local_storage | default(false) }}"
+k3s_server_metrics_server_enabled: "{{ k3s.server_components.metrics_server | default(false) }}"
 k3s_service_type: "notify"
-k3s_exec_args: "{{ 'server' | k3s_exec_arg_builder(k3s_cri_arg, apiserver_address, apiserver_port, advertise_address, advertise_port, tls_san, cluster_cidr, service_cidr, cluster_core_dns, cluster_domain) }}"
-#k3s_user: "{{ ansible_user | default(root) }}"
-#k3s_home: "{% if k3s_user == 'root' %}/root{% else %}/home/{{k3s_user}}{% endif %}"
+k3s_exec_args: "{{ 'server' | k3s_exec_arg_builder(k3s_cri_arg, apiserver_address, apiserver_port, advertise_address, advertise_port, tls_san, cluster_cidr, service_cidr, cluster_core_dns, cluster_domain, k3s_server_coredns_enabled, k3s_server_servicelb_enabled, k3s_server_traefik_enabled, k3s_server_local_storage_enabled, k3s_server_metrics_server_enabled) }}"
 k3s_token_path: "/var/lib/rancher/k3s/server/node-token"
+k3s_system_env: "/etc/systemd/system/k3s.env"
 
-
-
-
-
+# kubernetes generic parameters
 apiserver_address:
 apiserver_port: 6443
 advertise_address:
@@ -34,32 +33,6 @@ cluster_core_dns:
 cluster_domain:
 
 
-# k8s specific
-
-# default flags, non-environment variables for k3s
-# --bind-address (default 0.0.0.0)
-# --https-listen-port (default port 6443) - can be left undefined
-# --advertise-address - can be undefined
-# --advertise-port (default is same as https-listen-port) - can be undefined
-# --tls-san <value> additional hostname or ip as SAN in the TLS cert
-
-# --data-dir <value> (/var/lib/rancher/k3s) folder to hold state
-
-# --cluster-cidr <value> (default 10.42.0.0/16)
-# --service-cidr <value> (default 10.43.0.0/16)
-# --cluster-dns <value> (default 10.43.0.10)
-# --cluster-domain <value> (default cluster.local)
-
-# k8s
-# --apiserver-advertise-address <string> bindaddress
-# --apiserver-bind-port <int32> default 6443
-# --apiserver-cert-extra-sans <stringSlice>
-# --pod-network-cidr <string> = cluster cidr
-# --service-cidr <string> default 10.96.0.0/12
-# --service-dns-domain <string> default cluster.local
-
-
-# create defined parameters
-# join defined parameters into list
-# concat list into string
-# pass string as exec arg
+# k8s/kubeadm specific
+k8s_token_ttl: "1h"
+k8s_token_description: "ansible-generated"
