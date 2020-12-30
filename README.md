@@ -11,6 +11,12 @@ Ansible Playbook for a Green Field Deployment Kubernetes Cluster (k3s or k8s)
 - [ ] Role for installing MetalLb
 - [x] Role for deploying kubernetes worker node
 - [ ] Grab the kube config file and store locally?
+- [x] Role for Creating External ETCD datastore
+- [ ] Add containerd as alternate container runtime
+- [ ] Add Upgrade playbook for k8s
+
+# Prerequisite
+Please note, you'll need to supply your own SSL Certificates
 
 # Running Playbook
 ```
@@ -18,7 +24,7 @@ ansible-playbook all.yaml -i hosts.yaml
 ```
 
 ## Notes:
-- Need to determine way to backup etcd
+- Create solution for backing up/restoring etcd?
 - When deploying controlplanes and worker nodes, if I'm adding new worker nodes, I don't want to re-create the controlplane node, I don't want to re-generate the token. So I add logic for this or add a separate role/tasks for adding worker.
 - What about replacing a server node?
-- Need to think about default configs for k3s and k8s.
+- Ensure that I can create HA for kubernetes control plane nodes.
