@@ -87,6 +87,7 @@ class FilterModule(object):
 
         return ','.join(etcd_bootstrap_list)
 
+# etcd endpoint builder to supply to k3s instance for datastore reference
     def etcd_k3s_endpoint_builder(self, blankignore, cp_fqdn, worker_fqdn, client_port, ssl_enabled):
         
         ch = cp_fqdn.split(',')
