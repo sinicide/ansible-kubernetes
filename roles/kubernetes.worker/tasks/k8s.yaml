@@ -1,7 +1,9 @@
 ---
 # TODO:
-# [ ] Need a check to see if worker is already joined, if so skip this step, check /etc/kubernetes/kubelet.conf
+# [ ] Need a check to see if worker is already joined, if so skip this step, check /etc/kubernetes/kubelet.conf, compare cert?
 
+# check kubelet status, if not running, we're assuming this is a new instance?
+# if running we should check verify if it's already part of the cluster?
 - name: Check on kubelet status
   systemd:
     name: kubelet
@@ -10,6 +12,7 @@
 #- debug:
 #    msg: "{{ kubelet_status.status.ActiveState }}"
 
+# since kubelet is not active, we're assuming this node has not joined the cluster
 - name: Running Join Command on Worker Nodes
-  command: "{{ hostvars['dummy_node']['join_command'] }}"
+  command: "{{ hostvars['dummy_k8s_node']['join_command'] }}"
   when: (kubelet_status.status.ActiveState != 'active')
