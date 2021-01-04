@@ -11,5 +11,6 @@ apt_os_packages:
   - sysstat
   - ntp
   - jq
+  - nfs-common
 
 vm_timezone: "America/Chicago"
