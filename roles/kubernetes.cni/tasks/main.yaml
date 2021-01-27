@@ -10,4 +10,4 @@
 - name: Install Container Networking Provider
   become: no
   command: "kubectl --kubeconfig {{ kube_config }} apply -f {{ container_networking_provider }}"
-  when: "( calico_ds_count == 0 )"
+  when: "( calico_ds_count.stdout|int == 0 )"
