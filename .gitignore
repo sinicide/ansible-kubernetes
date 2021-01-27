@@ -2,6 +2,7 @@ hosts.yaml
 hosts_pies.yaml
 hosts_test_k3s.yaml
 hosts_test_k8s.yaml
+hosts_k8s.yaml
 *.pyc
 *.crt
 *.key
