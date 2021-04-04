@@ -15,4 +15,4 @@ k3s_binary_download_url: "{{k3s_github_url}}/download/{{k3s_version}}/k3s{{k3s_s
 
 # raspberry pi
 cmdline_file: "{% if ansible_distribution == 'Ubuntu' %}/boot/firmware/cmdline.txt{% else %}/boot/cmdline.txt{% endif %}"
-cmdline_arg: "cgroup_memory=1 cgroup_enable=memory"
+cmdline_arg: "cgroup_enable=cpuset cgroup_memory=1 cgroup_enable=memory swapaccount=1"
