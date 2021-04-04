@@ -1,3 +1,4 @@
 # Defaulting to calico
 kube_config: "/home/{{ ansible_user }}/.kube/config"
-container_networking_provider: "https://docs.projectcalico.org/manifests/calico.yaml"
+cni_yaml_url: "https://docs.projectcalico.org/manifests/calico.yaml"
+container_networking_provider: "/tmp/calico-k8s.yaml"

@@ -7,6 +7,12 @@
   become: no
   register: calico_ds_count
 
+- name: Copy over Calico yaml
+  copy:
+    src: "../files/calico-k8s.yaml"
+    dest: "{{ container_networking_provider }}"
+  when: "( calico_ds_count.stdout|int == 0 )"
+
 - name: Install Container Networking Provider
   become: no
   command: "kubectl --kubeconfig {{ kube_config }} apply -f {{ container_networking_provider }}"
