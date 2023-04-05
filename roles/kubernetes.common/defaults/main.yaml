@@ -1,5 +1,5 @@
 # k8s
-k8s_version: "1.20.1-00"
+k8s_version: "1.26.3-00"
 # ordering here is important as kubeadm will install kubelet and kubectl as dependencies
 k8s_packages:
   - kubelet
