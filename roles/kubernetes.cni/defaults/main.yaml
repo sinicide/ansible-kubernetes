@@ -1,4 +1,6 @@
-# Defaulting to calico
-kube_config: "/home/{{ ansible_user }}/.kube/config"
-cni_yaml_url: "https://docs.projectcalico.org/manifests/calico.yaml"
-container_networking_provider: "/tmp/calico-k8s.yaml"
+# Calico - https://github.com/projectcalico/calico/releases
+calico_version: "3.25.1"
+calico_operator_url: "https://raw.githubusercontent.com/projectcalico/calico/v{{ calico_version }}/manifests/tigera-operator.yaml"
+calico_operator_destination: "/tmp/calico-operator.yaml"
+calico_metrics_port: "1234"
+calico_custom_resources: "/tmp/calico-custom-resources.yaml"
