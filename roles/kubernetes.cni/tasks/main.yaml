@@ -1,3 +1,6 @@
 ---
+- import_role:
+    name: variables
+    
 # deploy CNI (calico) for now, may add other options in future.
 - include_tasks: calico.yaml
