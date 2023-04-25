@@ -26,3 +26,36 @@
 - name: Disable swap
   shell: swapoff -a
   when: ansible_swaptotal_mb > 0
+
+- name: Enable overlay
+  modprobe:
+    name: overlay
+    state: present
+    persistent: present
+
+- name: Enable br_netfilter
+  modprobe:
+    name: br_netfilter
+    state: present
+    persistent: present
+
+- name: Set net.ipv4.ip_forward=1
+  sysctl:
+    name: net.ipv4.ip_forward
+    value: '1'
+    state: present
+    reload: yes
+
+- name: Set net.bridge.bridge-nf-call-iptables=1
+  sysctl:
+    name: net.bridge.bridge-nf-call-iptables
+    value: '1'
+    state: present
+    reload: yes
+
+- name: Set net.bridge.bridge-nf-call-ip6tables=1
+  sysctl:
+    name: net.bridge.bridge-nf-call-ip6tables
+    value: '1'
+    state: present
+    reload: yes
