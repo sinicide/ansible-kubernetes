@@ -1,0 +1,36 @@
+---
+- name: Check for existing Calico DaemonSet
+  shell: "kubectl --kubeconfig {{ kube_config }} get daemonset -A | grep -ic calico-node"
+  become: no
+  failed_when: "calico_ds_count == 2"
+  register: calico_ds_count
+  changed_when: false
+
+# Todo: I should compare the version of calico image vs what I'm trying to deploy to know if upgrading or not.
+
+- name: Download Calico Operator {{ calico_version }} yaml
+  get_url:
+    url: "{{ calico_operator_url }}"
+    dest: "{{ calico_operator_destination }}"
+  when: "( calico_ds_count.stdout|int == 0 )"
+
+# Apply calico-operator, run replace if updating
+- name: Applying Calico Operator
+  shell: "kubectl --kubeconfig {{ kube_config }} create -f {{ calico_operator_destination }}"
+  become: no
+  register: calico_operator_apply
+  when: "( calico_ds_count.stdout|int == 0 )"
+
+- name: Copy calico-custom-resources.yaml
+  template:
+    src: "../templates/calico-custom-resources.yaml.j2"
+    dest: "{{ calico_custom_resources }}"
+  when: "( calico_ds_count.stdout|int == 0 )"
+
+- name: Applying calico-custom-resources.yaml
+  shell: "kubectl --kubeconfig {{ kube_config }} apply -f {{ calico_custom_resources }}"
+  become: no
+  register: calico_operator_apply
+  when: "( calico_ds_count.stdout|int == 0 )"
+
+# Todo: check to see if calico is running
