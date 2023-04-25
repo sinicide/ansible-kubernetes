@@ -1,0 +1,23 @@
+apiVersion: operator.tigera.io/v1
+kind: Installation
+metadata:
+  name: default
+spec:
+  #nodeMetricsPort: {{ calico_metrics_port }}
+  # Configures Calico networking.
+  calicoNetwork:
+    nodeAddressAutodetectionV4:
+      cidrs:
+        - "192.168.0.0/16"
+    # Note: The ipPools section cannot be modified post-install.
+    #ipPools:
+    # cidr, valid  IPv4 or IPv6 CIDR ranges
+    #- cidr: 192.168.0.0/16
+    #  encapsulation: none
+    #  encapsulation: VXLANCrossSubnet
+---
+apiVersion: operator.tigera.io/v1
+kind: APIServer
+metadata:
+  name: default
+spec: {}
