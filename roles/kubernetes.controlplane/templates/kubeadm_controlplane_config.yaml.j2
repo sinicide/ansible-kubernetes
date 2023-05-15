@@ -1,0 +1,113 @@
+apiVersion: kubeadm.k8s.io/v1beta3
+kind: ClusterConfiguration
+{% if config_type != 'etcd' %}
+kubernetesVersion: {{ kube_controlplane_version }}
+{% endif %}
+{% if config_type == 'etcd' %}
+etcd:
+{% if etcd_type == "external" %}
+  external:
+    endpoints:
+{% for host in etcd_external_endpoints %}
+      - "{{ host }}"
+{% endfor %}
+    caFile: {{ etcd_external_ca_file }}
+    certFile: {{ etcd_external_cert_file }}
+    keyFile: {{ etcd_external_key_file }}
+{% else %}
+  local:
+    dataDir: {{ etcd_local_data_dir }}
+{% if etcd_local_server_cert_sans %}
+    serverCertSANs:
+{% for cert in etcd_local_server_cert_sans %}
+      - "{{ cert }}"    
+{% endfor %}
+{% endif %}
+{% if etcd_local_peer_cert_sans %}
+    peerCertSANs:
+{% for cert in etcd_local_peer_cert_sans %}
+      - "{{ cert }}"    
+{% endfor %}
+{% endif %}
+{% if etcd_local_extra_args %}
+    extraArgs:
+{% for kv_item in etcd_local_extra_args %}
+{% for k_arg, v_arg in kv_item.items() %}
+  {{ k_arg }}: "{{ v_arg }}"
+{% endfor %}
+{% endfor %}
+{% endif %}
+{% endif %}
+{% elif config_type == 'apiserver' %}
+apiserver:
+{% if kube_api_server_extra_args %}
+  extraArgs:
+{% for key, value in kube_api_server_combined_extra_args.items() %}
+      {{ key }}: "{{ value }}"
+{% endfor %}
+{% if kube_api_server_extra_volumes %}
+  extraVolumes:
+{% for volume in kube_api_server_extra_volumes %}
+      - name: "{{ volume.name }}"
+        hostPath: "{{ volume.hostPath }}"
+        mountPath: "{{ volume.mountPath }}"
+{% if volume.readOnly is defined %}
+        readOnly: {{ volume.readOnly }}
+{% endif %}
+{% if volume.pathType is defined %}
+        pathType: "{{ volume.pathType }}"
+{% endif %}
+{% endfor %}
+{% endif %}
+{% endif %}
+{% elif config_type == 'controller-manager' %}
+controllerManager:
+{% if kube_controller_manager_extra_args %}
+  extraArgs:
+{% for kv_item in kube_controller_manager_extra_args %}
+{% for k_arg, v_arg in kv_item.items() %}
+    {{ k_arg }}: "{{ v_arg }}"
+{% endfor %}
+{% endfor %}
+{% endif %}
+{% if kube_controller_manager_extra_volumes %}
+  extraVolumes:
+{% for volume in kube_controller_manager_extra_volumes %}
+    - name: "{{ volume.name }}"
+      hostPath: "{{ volume.hostPath }}"
+      mountPath: "{{ volume.mountPath }}"
+{% if volume.readOnly is defined %}
+      readOnly: {{ volume.readOnly }}
+{% endif %}
+{% if volume.pathType is defined %}
+      pathType: "{{ volume.pathType }}"
+{% endif %}
+{% endfor %}
+{% endif %}
+{% elif config_type == 'scheduler' %}
+scheduler:
+{% if kube_scheduler_extra_args %}
+  extraArgs:
+{% for kv_item in kube_scheduler_extra_args %}
+{% for k_arg, v_arg in kv_item.items() %}
+    {{ k_arg }}: "{{ v_arg }}"
+{% endfor %}
+{% endfor %}
+{% endif %}
+{% if kube_scheduler_extra_volumes %}
+  extraVolumes:
+{% for volume in kube_scheduler_extra_volumes %}
+    - name: "{{ volume.name }}"
+      hostPath: "{{ volume.hostPath }}"
+      mountPath: "{{ volume.mountPath }}"
+{% if volume.readOnly is defined %}
+      readOnly: {{ volume.readOnly }}
+{% endif %}
+{% if volume.pathType is defined %}
+      pathType: "{{ volume.pathType }}"
+{% endif %}
+{% endfor %}
+{% endif %}
+{% else %}
+# Could not determine config_type
+{% endif %}
