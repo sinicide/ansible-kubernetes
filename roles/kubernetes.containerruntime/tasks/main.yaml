@@ -1,47 +1,6 @@
 ---
-- name: Add Docker Apt Key
-  apt_key:
-    url: "https://download.docker.com/linux/ubuntu/gpg"
-    state: present
-  when:
-    - ansible_os_family == "Debian"
-    
-- name: Add Docker Repository
-  apt_repository:
-    repo: "deb [arch={{ arch }}] https://download.docker.com/linux/ubuntu {{ distro }} stable"
-    state: present
-  when:
-    - ansible_os_family == "Debian"
+# add docker repo, used for both docker and containerd
+- include_tasks: docker_repo.yaml
 
-- name: Install Container Runtime
-  apt:
-    name: "{{item}}"
-    state: present
-  loop: "{{docker_packages}}"
-  when:
-    - ansible_os_family == "Debian"
-    
-- name: Copy Docker Daemon Over
-  copy:
-    src: "files/daemon.json"
-    dest: "/etc/docker/daemon.json"
-    owner: root
-    group: root
-    mode: '0644'
-  when: (install_k3s is not defined) or (install_k3s|bool == False)
-    
-- name: Create Docker Service
-  file:
-    path: "/etc/systemd/system/docker.service.d"
-    state: directory
-    owner: root
-    group: root
-    mode: '0755'
-  when: (install_k3s is not defined) or (install_k3s|bool == False)
-
-- name: Restarting Docker Daemon
-  systemd:
-    name: docker
-    state: restarted
-    daemon_reload: yes
-  when: (install_k3s is not defined) or (install_k3s|bool == False)
+# Install containerd (default)
+- include_tasks: containerd.yaml
