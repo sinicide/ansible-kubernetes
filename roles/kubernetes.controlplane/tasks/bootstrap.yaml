@@ -1,0 +1,34 @@
+---
+- name: Start kubelet service
+  systemd:
+    name: kubelet
+    state: started
+  register: kubelet_status
+
+- name: Check for existing kube-config
+  stat:
+    path: "{{ kube_home }}/.kube/config"
+  register: user_kube_config
+
+- name: Copy kubeadm init configuration file to host
+  template:
+    src: "../templates/{{ kube_init_config_name }}.j2"
+    dest: "{{ kube_init_config_path }}"
+  when: "(user_kube_config.stat.exists == false)"
+  run_once: true
+
+- name: Initialize kubernetes cluster
+  shell: "kubeadm init --config {{ kube_init_config_path }}"
+  become: yes
+  args:
+    executable: "/bin/bash"
+  register: kubeadm_init_output
+  when: "(user_kube_config.stat.exists == false)"
+  run_once: true
+
+- debug:
+    msg: "{{ kubeadm_init_output.stdout }}"
+  when: "(user_kube_config.stat.exists == false)"
+
+- include_tasks: copy_kubeconfig.yaml
+- include_tasks: fetch_kubeconfig.yaml
