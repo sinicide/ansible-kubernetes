@@ -1,0 +1,22 @@
+apiVersion: kubeadm.k8s.io/v1beta3
+kind: JoinConfiguration
+nodeRegistration:
+  name: "{{ ansible_fqdn }}"
+  criSocket: unix:///var/run/containerd/containerd.sock
+  imagePullPolicy: IfNotPresent
+  taints: null
+  kubeletExtraArgs:
+    cgroup-driver: "systemd"
+discovery:
+  bootstrapToken:
+    token: {{ join_token }}
+    apiServerEndpoint: {{ kube_lb_api_endpoint }}:{{ kube_lb_api_port }}
+    caCertHashes:
+      - "sha256:{{ join_ca_cert_hash }}"
+    unsafeSkipCAVerification: true
+  timeout: {{ kube_join_timeout }}
+controlPlane:
+  localAPIEndpoint:
+    advertiseAddress: {{ kube_local_api_endpoint }}
+    bindPort: {{ kube_local_api_port }}
+  certificateKey: {{ join_certificate_key }}
