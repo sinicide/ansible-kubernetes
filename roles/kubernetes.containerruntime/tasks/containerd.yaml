@@ -1,0 +1,25 @@
+---
+- name: Install Containerd Runtime
+  apt:
+    name: "containerd.io"
+    state: present
+  when:
+    - ansible_os_family == "Debian"
+
+- name: Set default configs
+  shell: "containerd config default > /etc/containerd/config.toml"
+  become: yes
+  args:
+    executable: "/bin/bash"
+
+- name: Set SystemdCgroup = true
+  replace:
+    path: /etc/containerd/config.toml
+    regexp: '(SystemdCgroup = )(.+)'
+    replace: '\1true'
+
+- name: Start containerd Service
+  systemd:
+    name: containerd
+    state: restarted
+    daemon_reload: true
