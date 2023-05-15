@@ -13,7 +13,7 @@
   when:
     - ansible_os_family == "Debian"
 
-- name: Install Kubernetes Components
+- name: Install Kubernetes Components version v{{ k8s_version }}
   apt:
     name: "{{item}}={{k8s_version}}"
     state: present
