@@ -1,0 +1,141 @@
+apiVersion: kubeadm.k8s.io/v1beta3
+kind: InitConfiguration
+nodeRegistration:
+  name: "{{ ansible_fqdn }}"
+  criSocket: unix:///var/run/containerd/containerd.sock
+  imagePullPolicy: IfNotPresent
+  taints: null
+  kubeletExtraArgs:
+    cgroup-driver: "systemd"
+localAPIEndpoint:
+  advertiseAddress: {{ kube_local_api_endpoint }}
+  bindPort: {{ kube_local_api_port }}
+---
+apiVersion: kubeadm.k8s.io/v1beta3
+kind: ClusterConfiguration
+kubernetesVersion: {{ kube_controlplane_version }}
+imageRepository: {{ kube_cluster_image_repo }}
+{% if kube_cluster_name %}clusterName: "{{ kube_cluster_name }}"
+{% endif %}
+{% if kube_lb_api_endpoint or etcd_external_endpoints %}controlPlaneEndpoint: "{{ kube_lb_api_endpoint }}:{{ kube_lb_api_port }}"
+{% endif %}
+networking:
+  dnsDomain: {{ kube_cluster_dns_domain }}
+  serviceSubnet: {{ kube_cluster_service_cidr }}
+  podSubnet: {{ kube_cluster_pod_cidr }}
+etcd:
+{% if etcd_type == "external" %}
+  external:
+    endpoints:
+{% for host in etcd_external_endpoints %}
+      - "{{ host }}"
+{% endfor %}
+    caFile: {{ etcd_external_ca_file }}
+    certFile: {{ etcd_external_cert_file }}
+    keyFile: {{ etcd_external_key_file }}
+{% else %}
+  local:
+    dataDir: {{ etcd_local_data_dir }}
+{% if etcd_local_server_cert_sans %}
+    serverCertSANs:
+{% for cert in etcd_local_server_cert_sans %}
+      - "{{ cert }}"    
+{% endfor %}
+{% endif %}
+{% if etcd_local_peer_cert_sans %}
+    peerCertSANs:
+{% for cert in etcd_local_peer_cert_sans %}
+      - "{{ cert }}"    
+{% endfor %}
+{% endif %}
+{% if etcd_local_extra_args %}
+    extraArgs:
+{% for kv_item in etcd_local_extra_args %}
+{% for k_arg, v_arg in kv_item.items() %}
+  {{ k_arg }}: "{{ v_arg }}"
+{% endfor %}
+{% endfor %}
+{% endif %}
+{% endif %}
+apiServer:
+  timeoutForControlPlane: {{ kube_api_server_timeout_for_control_plane }}
+  controlPlaneComponent:
+    extraArgs:
+{% for key, value in kube_api_server_combined_extra_args.items() %}
+      {{ key }}: "{{ value }}"
+{% endfor %}
+{% if kube_api_server_extra_volumes %}
+    extraVolumes:
+{% for volume in kube_api_server_extra_volumes %}
+      - name: "{{ volume.name }}"
+        hostPath: "{{ volume.hostPath }}"
+        mountPath: "{{ volume.mountPath }}"
+{% if volume.readOnly is defined %}
+        readOnly: {{ volume.readOnly }}
+{% endif %}
+{% if volume.pathType is defined %}
+        pathType: "{{ volume.pathType }}"
+{% endif %}
+{% endfor %}
+{% endif %}
+{% if kube_api_server_cert_sans %}
+  certSANs:
+{% for cert in kube_api_server_cert_sans %}
+    - "{{ cert }}"
+{% endfor %}
+{% endif %}
+certificatesDir: {{ kube_certificate_dir }}
+{% if kube_scheduler_extra_args or kube_scheduler_extra_volumes %}
+scheduler:
+{% if kube_scheduler_extra_args %}
+  extraArgs:
+{% for kv_item in kube_scheduler_extra_args %}
+{% for k_arg, v_arg in kv_item.items() %}
+    {{ k_arg }}: "{{ v_arg }}"
+{% endfor %}
+{% endfor %}
+{% endif %}
+{% if kube_scheduler_extra_volumes %}
+  extraVolumes:
+{% for volume in kube_scheduler_extra_volumes %}
+    - name: "{{ volume.name }}"
+      hostPath: "{{ volume.hostPath }}"
+      mountPath: "{{ volume.mountPath }}"
+{% if volume.readOnly is defined %}
+      readOnly: {{ volume.readOnly }}
+{% endif %}
+{% if volume.pathType is defined %}
+      pathType: "{{ volume.pathType }}"
+{% endif %}
+{% endfor %}
+{% endif %}
+{% else %}
+scheduler: {{ kube_scheduler_default }}
+{% endif %}
+{% if kube_controller_manager_extra_args or kube_controller_manager_extra_volumes %}
+controllerManager:
+{% if kube_controller_manager_extra_args %}
+  extraArgs:
+{% for kv_item in kube_controller_manager_extra_args %}
+{% for k_arg, v_arg in kv_item.items() %}
+    {{ k_arg }}: "{{ v_arg }}"
+{% endfor %}
+{% endfor %}
+{% endif %}
+{% if kube_controller_manager_extra_volumes %}
+  extraVolumes:
+{% for volume in kube_controller_manager_extra_volumes %}
+    - name: "{{ volume.name }}"
+      hostPath: "{{ volume.hostPath }}"
+      mountPath: "{{ volume.mountPath }}"
+{% if volume.readOnly is defined %}
+      readOnly: {{ volume.readOnly }}
+{% endif %}
+{% if volume.pathType is defined %}
+      pathType: "{{ volume.pathType }}"
+{% endif %}
+{% endfor %}
+{% endif %}
+{% else %}
+controllerManager: {{ kube_controller_manager_default }}
+{% endif %}
