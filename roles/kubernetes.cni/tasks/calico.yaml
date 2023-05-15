@@ -1,25 +1,41 @@
 ---
 - name: Check for existing Calico DaemonSet
-  shell: "kubectl --kubeconfig {{ kube_config }} get daemonset -A | grep -ic calico-node"
+  shell: "kubectl --kubeconfig {{ kube_user_config }} get daemonset -A | grep -ic calico-node"
   become: no
   failed_when: "calico_ds_count == 2"
   register: calico_ds_count
   changed_when: false
 
-# Todo: I should compare the version of calico image vs what I'm trying to deploy to know if upgrading or not.
+- name: Check for Calico version
+  shell: "kubectl --kubeconfig {{ kube_user_config }} get ds -n calico-system calico-node -o yaml | grep -m 1 'image:' | sed -nr 's/.+v([0-9.]+)/\1/p'"
+  become: no
+  register: calico_version_found
+  changed_when: false
+  when: "( calico_ds_count.stdout|int > 0 )"
+
+- debug:
+    msg:
+      - "Calico Version Found {{ calico_version_found.stdout }}"
+      - "Calico Version to be installed {{ calico_version }}"
+  when: "( calico_ds_count.stdout|int > 0 )"
 
 - name: Download Calico Operator {{ calico_version }} yaml
   get_url:
     url: "{{ calico_operator_url }}"
     dest: "{{ calico_operator_destination }}"
-  when: "( calico_ds_count.stdout|int == 0 )"
+  when: "( calico_ds_count.stdout|int >= 0 )"
 
-# Apply calico-operator, run replace if updating
 - name: Applying Calico Operator
-  shell: "kubectl --kubeconfig {{ kube_config }} create -f {{ calico_operator_destination }}"
+  shell: "kubectl --kubeconfig {{ kube_user_config }} create -f {{ calico_operator_destination }}"
   become: no
   register: calico_operator_apply
   when: "( calico_ds_count.stdout|int == 0 )"
+
+- name: Replace Calico Operator
+  shell: "kubectl --kubeconfig {{ kube_user_config }} replace -f {{ calico_operator_destination }}"
+  become: no
+  register: calico_operator_upgrade
+  when: "( calico_ds_count.stdout|int > 0 ) and ( calico_version_found|string != calico_version|string )"
 
 - name: Copy calico-custom-resources.yaml
   template:
@@ -28,9 +44,7 @@
   when: "( calico_ds_count.stdout|int == 0 )"
 
 - name: Applying calico-custom-resources.yaml
-  shell: "kubectl --kubeconfig {{ kube_config }} apply -f {{ calico_custom_resources }}"
+  shell: "kubectl --kubeconfig {{ kube_user_config }} apply -f {{ calico_custom_resources }}"
   become: no
   register: calico_operator_apply
   when: "( calico_ds_count.stdout|int == 0 )"
-
-# Todo: check to see if calico is running
