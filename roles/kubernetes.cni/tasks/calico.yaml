@@ -7,7 +7,7 @@
   changed_when: false
 
 - name: Check for Calico version
-  shell: "kubectl --kubeconfig {{ kube_user_config }} get ds -n calico-system calico-node -o yaml | grep -m 1 'image:' | sed -nr 's/.+v([0-9.]+)/\1/p'"
+  shell: "kubectl --kubeconfig {{ kube_user_config }} get ds -n calico-system calico-node -o yaml | grep -m 1 'image:' | sed -nr 's/.+v([0-9.]+)/\\1/p'"
   become: no
   register: calico_version_found
   changed_when: false
@@ -35,7 +35,7 @@
   shell: "kubectl --kubeconfig {{ kube_user_config }} replace -f {{ calico_operator_destination }}"
   become: no
   register: calico_operator_upgrade
-  when: "( calico_ds_count.stdout|int > 0 ) and ( calico_version_found|string != calico_version|string )"
+  when: "( calico_ds_count.stdout|int > 0 ) and ( calico_version_found.stdout|string != calico_version|string )"
 
 - name: Copy calico-custom-resources.yaml
   template:
