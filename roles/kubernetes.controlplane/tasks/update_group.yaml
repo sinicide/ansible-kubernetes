@@ -1,0 +1,56 @@
+---
+# backup manifest
+- include_tasks: backup_manifests.yaml
+  when: "regen_api_server_manifest or regen_scheduler_manifest or regen_controller_manager_manifest or regen_etcd_local_manifest"
+
+# backup certs
+- include_tasks: backup_certs.yaml
+  when: "regen_api_server_certs or regen_etcd_local_certs"
+
+# Re-deploy etcd
+- include_tasks: redeploy.yaml
+  vars:
+    config_type: "etcd"
+    manifest_filename: "etcd.yaml"
+    pod_name: "etcd-{{ ansible_fqdn }}"
+    delete_manifest: "{{ regen_etcd_local_manifest }}"
+    list_of_certs: "{{ etcd_signed_certs }}"
+    cert_types: "{{ etcd_cert_list }}"
+    regen_certs: "{{ regen_etcd_local_certs }}"
+  when: "regen_etcd_local_manifest or regen_etcd_local_certs"
+
+# Re-deploy controller-manager
+- include_tasks: redeploy.yaml
+  vars:
+    config_type: "controller-manager"
+    manifest_filename: "kube-controller-manager.yaml"
+    pod_name: "kube-controller-manager-{{ ansible_fqdn }}"
+    delete_manifest: "{{ regen_controller_manager_manifest }}"
+    list_of_certs: ""
+    cert_types: ""
+    regen_certs: false
+  when: "regen_controller_manager_manifest"
+
+# Re-deploy scheduler
+- include_tasks: redeploy.yaml
+  vars:
+    config_type: "scheduler"
+    manifest_filename: "kube-scheduler.yaml"
+    pod_name: "kube-scheduler-{{ ansible_fqdn }}"
+    delete_manifest: "{{ regen_scheduler_manifest }}"
+    list_of_certs: ""
+    cert_types: ""
+    regen_certs: false
+  when: "regen_scheduler_manifest"
+
+# Re-deploy apiserver
+- include_tasks: redeploy.yaml
+  vars:
+    config_type: "apiserver"
+    manifest_filename: "kube-apiserver.yaml"
+    pod_name: "kube-apiserver-{{ ansible_fqdn }}"
+    delete_manifest: "{{ regen_api_server_manifest }}"
+    list_of_certs: "{{ kube_apiserver_signed_certs }}"
+    cert_types: "{{ kube_api_server_cert_list }}"
+    regen_certs: "{{ regen_api_server_certs }}"
+  when: "regen_api_server_manifest or regen_api_server_certs"

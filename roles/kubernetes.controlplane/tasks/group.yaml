@@ -1,0 +1,10 @@
+---
+- name: Check for kube config
+  stat:
+    path: "{{ kube_user_config }}"
+  register: kube_config_check
+
+- include_tasks: update_group.yaml
+  when: 
+    - "kube_config_check.stat.exists"
+    - "redeploy_pods == true or (regen_api_server_certs == true or regen_etcd_local_certs == true or regen_api_server_manifest == true or regen_scheduler_manifest == true or regen_controller_manager_manifest == true or regen_etcd_local_manifest == true)"
