@@ -1,0 +1,131 @@
+---
+apiVersion: v1
+kind: ConfigMap
+metadata:
+  name: longhorn-default-setting
+  namespace: longhorn-system
+data:
+  default-setting.yaml: |-
+    # General{% if longhorn.general.upgradeChecker is defined %}    
+    upgrade-checker: {{ longhorn.general.upgradeChecker|lower }}
+{% endif %}
+{% if longhorn.general.defaultReplicaCount is defined %}
+    default-replica-count: {{ longhorn.general.defaultReplicaCount|int }}
+{% endif %}
+{% if longhorn.general.defaultDataLocality is defined %}
+    default-data-locality: {{ longhorn.general.defaultDataLocality }}
+{% endif %}
+{% if longhorn.general.staticStorageClass is defined %}
+    default-longhorn-static-storage-class: {{ longhorn.general.staticStorageClass }}
+{% endif %}
+{% if longhorn.general.autoSalvage is defined%}
+    auto-salvage: {{ longhorn.general.autoSalvage }}
+{% endif %}
+{% if longhorn.general.autoDeletePodWhenVolumeDetachedUnexpectedly is defined %}
+    auto-delete-pod-when-volume-detached-unexpectedly: {{ longhorn.general.autoDeletePodWhenVolumeDetachedUnexpectedly|lower }}
+{% endif %}
+{% if longhorn.general.podDeletionPolicyWhenNodeIsDown is defined %}
+    node-down-pod-deletion-policy: {{ longhorn.general.podDeletionPolicyWhenNodeIsDown }}
+{% endif %}
+{% if longhorn.general.allowNodeDrainWithLastHealthyReplica is defined %}
+    allow-node-drain-with-last-healthy-replica: {{ longhorn.general.allowNodeDrainWithLastHealthyReplica|lower }}
+{% endif %}
+{% if longhorn.general.replicaReplenishmentWaitInterval is defined %}
+    replica-replenishment-wait-interval: {{ longhorn.general.replicaReplenishmentWaitInterval|int }}
+{% endif %}
+{% if longhorn.general.disableRevisionCounter is defined %}
+    disable-revision-counter: {{ longhorn.general.disableRevisionCounter|lower }}
+{% endif %}
+{% if longhorn.general.systemManagedPodsImagePullPolicy is defined %}
+    system-managed-pods-image-pull-policy: {{ longhorn.general.systemManagedPodsImagePullPolicy }}
+{% endif %}
+{% if longhorn.general.autoCleanupSystemGeneratedSnapshot is defined %}
+    auto-cleanup-system-generated-snapshot: {{ longhorn.general.autoCleanupSystemGeneratedSnapshot|lower }}
+{% endif %}
+{% if longhorn.general.concurrentAutomaticEngineUpgradePerNodeLimit is defined %}
+    concurrent-automatic-engine-upgrade-per-node-limit: {{ longhorn.general.concurrentAutomaticEngineUpgradePerNodeLimit|int }}
+{% endif %}
+{% if longhorn.general.backingImageCleanupWaitInterval is defined %}
+    backing-image-cleanup-wait-interval: {{ longhorn.general.backingImageCleanupWaitInterval|int }}
+{% endif %}
+{% if longhorn.general.backingImageRecoveryWaitInterval is defined %}
+    backing-image-recovery-wait-interval: {{ longhorn.general.backingImageRecoveryWaitInterval|int }}
+{% endif %}
+{% if longhorn.general.createDefaultDiskOnLabeledNodes is defined %}
+    create-default-disk-labeled-nodes: {{ longhorn.general.createDefaultDiskOnLabeledNodes|lower }}
+{% endif %}
+{% if longhorn.orphan.orphanAutoDeletion is defined %}
+    # Orphan
+    orphan-auto-deletion: {{ longhorn.orphan.orphanAutoDeletion|lower }}
+{% endif %}
+    # Backup{% if longhorn.backup.type is defined %}
+    # backup target, defaulting to nfs
+    backup-target: {{ longhorn.backup.type }}://{{ longhorn.backup.target }}
+{% if longhorn.backup.type == "s3" %}
+    # will implement s3 later
+    backup-target-credential-secret: minio-secret
+{% endif %}
+{% else %}
+    backup-target: ""
+{% endif %}
+{% if longhorn.backup.recurringSuccessfulJobsHistoryLimit is defined %}
+    recurring-successful-jobs-history-limit: {{ longhorn.backup.recurringSuccessfulJobsHistoryLimit|int }}
+{% endif %}
+{% if longhorn.backup.recurringFailedJobsHistoryLimit is defined %}
+    recurring-failed-jobs-history-limit: {{ longhorn.backup.recurringFailedJobsHistoryLimit|int }}
+{% endif %}
+{% if longhorn.backup.backupstorePollInterval is defined %}
+    backupstore-poll-interval: {{ longhorn.backup.backupstorePollInterval|int }}
+{% endif %}
+
+    # Scheduling{% if longhorn.scheduling.replicaSoftAntiAffinity is defined %}
+    replica-soft-anti-affinity: {{ longhorn.scheduling.replicaSoftAntiAffinity|lower }}
+{% endif %}
+{% if longhorn.scheduling.replicaAutoBalance is defined %}
+    replica-auto-balance: {{ longhorn.scheduling.replicaAutoBalance }}
+{% endif %}
+{% if longhorn.scheduling.disableSchedulingOnCordonedNode is defined %}
+    disable-scheduling-on-cordoned-node: {{ longhorn.scheduling.disableSchedulingOnCordonedNode|lower }}
+{% endif %}
+{% if longhorn.scheduling.replicaZoneSoftAntiAffinity is defined %}
+    replica-zone-soft-anti-affinity: {{ longhorn.scheduling.replicaZoneSoftAntiAffinity|lower }}
+{% endif %}
+{% if longhorn.scheduling.allowVolumeCreationWithDegradedAvailability is defined %}
+    allow-volume-creation-with-degraded-availability: {{ longhorn.scheduling.allowVolumeCreationWithDegradedAvailability|lower }}
+{% endif %}
+
+    # Danger Zone
+{% if longhorn.dangerZone.kubernetesTaintToleration is defined %}
+    taint-toleration: {{ longhorn.dangerZone.kubernetesTaintToleration|join("; ") }}
+{% endif %}
+{% if longhorn.dangerZone.systemManagedComponentsNodeSelector is defined %}
+    system-managed-components-node-selector: {{ longhorn.dangerZone.systemManagedComponentsNodeSelector|join(";") }}
+{% endif %}
+{% if longhorn.dangerZone.priorityClass is defined %}
+    priority-class: {{ longhorn.dangerZone.priorityClass }}
+{% endif %}
+{% if longhorn.dangerZone.concurrentReplicaRebuildPerNodeLimit is defined %}
+    concurrent-replica-rebuild-per-node-limit: {{ longhorn.dangerZone.concurrentReplicaRebuildPerNodeLimit|int }}
+{% endif %}
+{% if longhorn.dangerZone.guaranteedEngineManagerCpu is defined %}
+    guaranteed-engine-manager-cpu: {{ longhorn.dangerZone.guaranteedEngineManagerCpu|int }}
+{% endif %}
+{% if longhorn.dangerZone.guaranteedReplicaManagerCpu is defined %}
+    guaranteed-replica-manager-cpu: {{ longhorn.dangerZone.guaranteedReplicaManagerCpu|int }}
+{% endif %}
+{% if longhorn.dangerZone.kubernetesClusterAutoscalerEnabled is defined %}
+    kubernetes-cluster-autoscaler-enabled: {{ longhorn.dangerZone.kubernetesClusterAutoscalerEnalbed|lower }}
+{% endif %}
+{% if longhorn.dangerZone.storageNetwork is defined %}
+    storage-network: {{ longhorn.dangerZone.storageNetwork }}
+{% endif %}
+
+{% if longhorn.disks is defined %}
+    # need to work on this
+    # https://longhorn.io/docs/1.4.1/best-practices/#minimal-available-storage-and-over-provisioning
+    #storage-over-provisioning-percentage: "percentage%"
+    #storage-minimal-available-percentage: "percentage%"
+
+{% else %}
+    default-data-path: /var/lib/longhorn-example/
+{% endif %}
