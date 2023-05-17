@@ -1,0 +1,28 @@
+---
+- name: Applying Node Labels
+  shell: "kubectl --kubeconfig {{ kube_user_config }} label node {{ ansible_fqdn }} node-role.kubernetes.io/{{ item }}"
+  become: no
+  args:
+    executable: "/bin/bash"
+  delegate_to: "{{ groups['bootstrap'][0] }}"
+  delegate_facts: true
+  with_items: "{{ combined_node_labels }}"
+  when: "combined_node_labels|length > 0"
+
+- name: Applying etcd node label
+  shell: "kubectl --kubeconfig {{ kube_user_config }} label node {{ ansible_fqdn }} node-role.kubernetes.io/{{ etcd_node_label }}"
+  become: no
+  args:
+    executable: "/bin/bash"
+  delegate_to: "{{ groups['bootstrap'][0] }}"
+  delegate_facts: true
+  when: "etcd_type == 'local'"
+
+- name: Untaint Control Plane node
+  shell: "kubectl --kubeconfig {{ kube_user_config }} taint node {{ ansible_fqdn }} node-role.kubernetes.io/control-plane-"
+  become: no
+  args:
+    executable: "/bin/bash"
+  delegate_to: "{{ groups['bootstrap'][0] }}"
+  delegate_facts: true
+  when: "kube_worker|d(false) == true"
