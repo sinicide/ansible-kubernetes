@@ -1,0 +1,12 @@
+---
+- name: Create Manifests Backup Dir
+  file:
+    path: "{{ kube_manifests_backup_dir }}"
+    state: directory
+    owner: "root"
+    group: "root"
+
+- name: Backing up manifests directory
+  archive:
+    path: "{{ kube_manifests_dir }}"
+    dest: "{{ kube_manifests_backup_dir }}/manifests-{{ ansible_date_time.date }}-{{ ansible_date_time.time|regex_replace(':') }}.tar.gz"
