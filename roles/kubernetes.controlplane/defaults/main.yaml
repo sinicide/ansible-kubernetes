@@ -1,38 +1,95 @@
-# defaults
-cp_host: "{{ ansible_fqdn | default(ansible_eth0.ipv4.address) }}"
-control_plane_port: "6443"
-control_plane_endpoint: "https://{{cp_host}}:{{control_plane_port}}"
-install_k3s: false
-
+kube_controlplane_version: "v{{ kubernetes_version }}"
 kube_user: "{{ ansible_user | default(root) }}"
 kube_home: "{% if kube_user == 'root' %}/root{% else %}/home/{{kube_user}}{% endif %}"
-kube_user_config: "{% if install_k3s == true %}/etc/rancher/k3s/k3s.yaml{% else %}/etc/kubernetes/admin.conf{% endif %}"
 
-# k3s specific
-k3s_bin_dir: "/usr/bin"
-k3s_cri_arg: "{% if container_runtime == 'docker' %} --{{ container_runtime }}{% else %} --containerd{% endif %}"
-k3s_server_coredns_enabled: "{{ k3s.server_components.coredns | default(false) }}"
-k3s_server_servicelb_enabled: "{{ k3s.server_components.servicelb | default(false) }}"
-k3s_server_traefik_enabled: "{{ k3s.server_components.traefik | default(false) }}"
-k3s_server_local_storage_enabled: "{{ k3s.server_components.local_storage | default(false) }}"
-k3s_server_metrics_server_enabled: "{{ k3s.server_components.metrics_server | default(false) }}"
-k3s_service_type: "notify"
-k3s_exec_args: "{{ 'server' | k3s_exec_arg_builder(k3s_cri_arg, apiserver_address, apiserver_port, advertise_address, advertise_port, tls_san, cluster_cidr, service_cidr, cluster_core_dns, cluster_domain, k3s_server_coredns_enabled, k3s_server_servicelb_enabled, k3s_server_traefik_enabled, k3s_server_local_storage_enabled, k3s_server_metrics_server_enabled) }}"
-k3s_token_path: "/var/lib/rancher/k3s/server/node-token"
-k3s_system_env: "/etc/systemd/system/k3s.env"
+kube_local_api_endpoint: "{{ ansible_eth0.ipv4.address }}"
+kube_local_api_port: "{% if overrides.kube.api.local_port is defined %}{{ overrides.kube.api.local_port }}{% else %}{{ kube.api.local_port|d(apiserver_default_port) }}{% endif %}"
+kube_cluster_pod_cidr: "{{ kube.cluster.pod_cidr }}"
+kube_cluster_service_cidr: "{{ kube.cluster.service_cidr|d('10.96.0.0/12') }}"
+kube_cluster_dns_domain: "{{ kube.cluster.dns_domain|d('cluster.local') }}"
+kube_cluster_name: "{{ kube.cluster.name|d('') }}"
+kube_cluster_image_repo: "{{ kube.cluster.image_repo|d('registry.k8s.io') }}"
 
-# kubernetes generic parameters
-apiserver_address:
-apiserver_port: 6443
-advertise_address:
-advertise_port:
-tls_san:
-cluster_cidr:
-service_cidr:
-cluster_core_dns:
-cluster_domain:
+# local or external
+etcd_type: "{{ etcd.type|d('local') }}"
+etcd_local_data_dir: "{{ etcd.data_dir|d('/var/lib/etcd') }}"
+etcd_local_extra_args: "{{ etcd.local.extra_args|d('') }}"
+etcd_local_server_cert_sans: "{{ etcd.local.server_cert_sans|d('') }}"
+etcd_local_peer_cert_sans: "{{ etcd.local.peer_cert_sans|d('') }}"
+etcd_external_endpoints: "{{ etcd.external.endpoints|d('') }}"
+etcd_external_ca_file: "{{ etcd.external.ca_file|d('') }}"
+etcd_external_cert_file: "{{ etcd.external.cert_file|d('') }}"
+etcd_external_key_file: "{{ etcd.external.key_file|d('') }}"
 
+# kubeadm config and join files
+kube_init_config_name: "kubeadm_init_config.yaml"
+kube_init_config_path: "/tmp/{{ kube_init_config_name }}"
+kube_join_config_name: "kubeadm_join_config.yaml"
+kube_join_config_path: "/tmp/{{ kube_join_config_name }}"
+kube_join_timeout: "5m"
 
-# k8s/kubeadm specific
-k8s_token_ttl: "1h"
-k8s_token_description: "ansible-generated"
+# apiserver
+kube_api_server_default_extra_args: [{'authorization-mode':'Node,RBAC'}]
+kube_api_server_extra_args: "{{ kube.server.extra_args|d([{}]) }}"
+kube_api_server_combined_extra_args: "{{ kube_api_server_default_extra_args|combine( kube_api_server_extra_args ) }}"
+kube_api_server_extra_volumes: "{{ kube.server.extra_volumes|d('') }}"
+kube_api_server_timeout_for_control_plane: "{{ kube.server.timeout_for_control_plane|d('4m0s') }}"
+kube_api_server_cert_sans: "{{ kube.server.cert_sans|d('') }}"
+
+kube_dir: "/etc/kubernetes"
+kube_backup_dir: "{{ kube_dir }}/.backup"
+kube_certificate_dir: "{{ kube_dir }}/pki"
+kube_certificate_backup_dir: "{{ kube_backup_dir }}/pki"
+kube_manifests_dir: "{{ kube_dir }}/manifests"
+kube_manifests_backup_dir: "{{ kube_backup_dir }}/manifests"
+kube_admin_config_path: "{{ kube_dir }}/admin.conf"
+kube_cluster_config_path: "/tmp/kubeadm_cluster_config"
+
+kube_apiserver_signed_certs:
+  - "apiserver.crt"
+  - "apiserver.key"
+  - "apiserver-etcd-client.crt"
+  - "apiserver-etcd-client.key"
+
+etcd_signed_certs:
+  - "server.crt"
+  - "server.key"
+  - "peer.crt"
+  - "peer.key"
+
+control_plane_nodenames: "{{ hostvars|dict2items|selectattr('value.group_names','search','controlplanes')|map(attribute='value.ansible_nodename') }}"
+combined_san_alt_names: ""
+
+# controller manager
+kube_controller_manager_default: "{}"
+kube_controller_manager_extra_args: "{{ kube.controller_manager.extra_args|d('') }}"
+kube_controller_manager_extra_volumes: "{{ kube.controller_manager.extra_volumes|d('') }}"
+
+# scheduler
+kube_scheduler_default: "{}"
+kube_scheduler_extra_args: "{{ kube.scheduler.extra_args|d('') }}"
+kube_scheduler_extra_volumes: "{{ kube.scheduler.extra_volumes|d('') }}"
+
+# re-generate cert
+regen_api_server_manifest: "{% if kube_api_server_extra_args|length > 0 or kube_api_server_extra_volumes|length > 0 %}true{% else %}false{% endif %}"
+regen_scheduler_manifest: "{% if kube_scheduler_extra_args|length > 0 or kube_scheduler_extra_volumes|length > 0 %}true{% else %}false{% endif %}"
+regen_controller_manager_manifest: "{% if kube_controller_manager_extra_args|length > 0 or kube_controller_manager_extra_volumes|length > 0 %}true{% else %}false{% endif %}"
+regen_etcd_local_manifest: "{% if etcd_type == 'local' and etcd_local_extra_args|length > 0 %}true{% else %}false{% endif %}"
+regen_etcd_local_certs: "{% if etcd_local_server_cert_sans|length > 0 or etcd_local_peer_cert_sans|length > 0 %}true{% else %}false{% endif %}"
+regen_api_server_certs: "{% if kube_api_server_cert_sans|length > 0 %}true{% else %}false{% endif %}"
+
+kube_api_server_cert_list:
+  - "apiserver"
+  - "apiserver-etcd-client"
+
+etcd_cert_list:
+  - "etcd-server"
+  - "etcd-peer"
+
+etcd_node_label: "etcd="
+worker_node_label: "worker="
+
+default_node_labels: []
+combined_node_labels: "{% if node_labels is defined %}{{ default_node_labels + node_labels }}{% else %}{{ default_node_labels }}{% endif %}"
+
+redeploy_pods: false
