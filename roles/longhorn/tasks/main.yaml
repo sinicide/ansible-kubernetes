@@ -1,0 +1,89 @@
+---
+# ToDo
+# [ ] Add authentication on UI ingress?
+# [ ] Add prometheus scrape setup?
+# [ ] Deploy Snapshot and backup and snapshot-cleanup cronjobs?
+
+- name: Checking for longhorn deployment
+  shell: "kubectl --kubeconfig {{ kube_user_config }} get daemonset -A | grep -c longhorn-manager"
+  become: no
+  failed_when: "longhorn_count == 2"
+  register: longhorn_count
+  changed_when: false
+
+- name: Check for existing version
+  shell: "kubectl --kubeconfig {{ kube_user_config }} get daemonset -n longhorn-system longhorn-manager -o jsonpath=\"{.spec.template.spec.containers[0].image}\" | awk -F ':v' '{print $2}'"
+  become: no
+  register: longhorn_current_version
+  when: "( longhorn_count.stdout|int > 0 )"
+  changed_when: false
+
+- name: Current Version of Longhorn Deployment on host
+  debug:
+    msg: 
+    - "current version {{ longhorn_current_version.stdout }}"
+    - "version to be applied {{ longhorn_version }}"
+  when: "( longhorn_count.stdout|int > 0 )"
+
+- name: Downloading longhorn manifest
+  get_url:
+    url: "{{ longhorn_manifest_url }}"
+    dest: "{{ longhorn_manifest_configuration }}"
+
+- name: Verify longhorn-system namespace exists
+  shell: "kubectl --kubeconfig {{ kube_user_config }} get namespace | grep -c longhorn-system"
+  become: no
+  register: longhorn_namespace_exists
+  failed_when: "longhorn_namespace_exists == 2"
+  changed_when: false
+
+- name: Create longhorn-system namespace
+  shell: "kubectl --kubeconfig {{ kube_user_config }} create namespace longhorn-system"
+  become: no
+  register: longhorn_created_namespace
+  when: "( longhorn_count.stdout|int == 0 ) and (longhorn_namespace_exists.stdout|int == 0)"
+  run_once: true
+
+- name: Copy longhorn default settings yaml to host
+  template:
+    src: "../templates/longhorn-default-settings.yaml.j2"
+    dest: "{{ longhorn_default_configuration }}"
+
+# Only apply on new configuration? This needs the namespace to exist, but the manifest creates the namespace.
+- name: Apply Longhorn Default Configuration yaml
+  shell: "kubectl --kubeconfig {{ kube_user_config }} apply -f {{ longhorn_default_configuration }}"
+  become: no
+  register: longhorn_default_configuration_apply
+  run_once: true
+  when: "( longhorn_count.stdout|int == 0 )"
+
+# need to implement an alternative option for replace instead of create command
+- name: Applying longhorn manifest
+  shell: "kubectl --kubeconfig {{ kube_user_config }} apply -f {{ longhorn_manifest_configuration }}"
+  become: no
+  register: longhorn_manifest_apply
+  run_once: true
+  when: "( longhorn_count.stdout|int == 0 )"
+
+# Install Longhorn UI, should I do a check to see if it's already installed?
+- name: Copying over longhorn ui yaml
+  template:
+    src: "../templates/longhorn_ui.yaml.j2"
+    dest: "{{ longhorn_ui_configuration }}"
+
+# might need to fix this on new deployment as it's not working as expected, might have turned out to be a calico issue
+- name: Applying longhorn ui yaml
+  shell: "kubectl --kubeconfig {{ kube_user_config }} apply -f {{ longhorn_ui_configuration }}"
+  become: no
+  run_once: true
+
+- name: Copying over longhorn storage class yaml
+  template:
+    src: "../templates/storage_class.yaml.j2"
+    dest: "{{ longhorn_sc_path }}"
+
+- name: Apply Custom Storage class
+  shell: "kubectl --kubeconfig {{ kube_user_config }} apply -f {{ longhorn_sc_path }}"
+  become: no
+  register: longhorn_sc_apply
+  run_once: true
