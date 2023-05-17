@@ -1,0 +1,31 @@
+---
+- name: Start kubelet service
+  systemd:
+    name: kubelet
+    state: started
+  register: kubelet_status
+
+- name: Check for existing kube-config
+  stat:
+    path: "{{ kube_user_config }}"
+  register: kube_config_check
+
+- name: Copy kubeadm join configuration file to host
+  template:
+    src: "../templates/{{ kube_join_config_name }}.j2"
+    dest: "{{ kube_join_config_path }}"
+  when: "(kube_config_check.stat.exists == false)"
+
+- name: Running join command
+  shell: "kubeadm join --config {{ kube_join_config_path }}"
+  become: yes
+  args:
+    executable: "/bin/bash"
+  register: kubeadm_join_output
+  when: "(kube_config_check.stat.exists == false)"
+
+- debug:
+    msg: "{{ kubeadm_join_output.stdout }}"
+  when: "(kube_config_check.stat.exists == false)"
+
+- include_tasks: copy_kubeconfig.yaml
