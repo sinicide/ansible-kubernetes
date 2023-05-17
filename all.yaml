@@ -175,6 +175,7 @@
     - import_role:
         name: longhorn
         tasks_from: apply_labels.yaml
+      when: longhorn.enabled|bool
 
 - name: Deploy Longhorn Storage
   tags: longhorn
