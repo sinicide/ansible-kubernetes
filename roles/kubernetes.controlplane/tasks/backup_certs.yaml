@@ -1,0 +1,12 @@
+---
+- name: Create Cert Backup Dir
+  file:
+    path: "{{ kube_certificate_backup_dir }}"
+    state: directory
+    owner: "root"
+    group: "root"
+
+- name: Backing up pki directory
+  archive:
+    path: "{{ kube_certificate_dir }}"
+    dest: "{{ kube_certificate_backup_dir }}/certs-{{ ansible_date_time.date }}-{{ ansible_date_time.time|regex_replace(':') }}.tar.gz"
