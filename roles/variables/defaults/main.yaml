@@ -1,0 +1,23 @@
+# global configs
+kubernetes_version: "1.26.4"
+
+kube_user_config: "/home/{{ ansible_user }}/.kube/config"
+k8s_token_ttl: "1h"
+k8s_token_description: "ansible-generated"
+kube_dir: "/etc/kubernetes"
+kube_certificate_dir: "{{ kube_dir }}/pki"
+kube_init_config_name: "kubeadm_init_config.yaml"
+kube_init_config_path: "/tmp/{{ kube_init_config_name }}"
+kube_join_config_name: "kubeadm_join_config.yaml"
+kube_join_config_path: "/tmp/{{ kube_join_config_name }}"
+kube_join_timeout: "5m"
+kube_update_config_name: "kubeadm_update_config.yaml"
+kube_update_config_path: "/tmp/{{ kube_update_config_name }}"
+
+apiserver_default_port: 6443
+
+kube_lb_api_endpoint: "{{ kube.api.lb_endpoint|d('') }}"
+kube_lb_api_port: "{% if kube.api.lb_endpoint is defined %}{{ kube.api.lb_port|d(apiserver_default_port) }}{% endif %}"
+
+node:
+ labels: []
