@@ -1,0 +1,66 @@
+---
+# ToDo
+# [ ] Add BGP configuration deployment?
+
+- name: Check for existing Metallb Controller
+  shell: "kubectl --kubeconfig {{ kube_user_config }} get pods -A | grep metallb | grep -c controller"
+  become: no
+  failed_when: "metallb_controller_count == 2"
+  register: metallb_controller_count
+  changed_when: false
+
+- name: Check for existing version
+  shell: "kubectl --kubeconfig {{ kube_user_config }} get deployment -n metallb-system controller -o jsonpath=\"{.spec.template.spec.containers[0].image}\" | awk -F ':v' '{print $2}'"
+  become: no
+  register: metallb_current_version
+  when: "( metallb_controller_count.stdout|int > 0 )"
+
+- name: Current Version of Metallb Deployment on host
+  debug:
+    msg: 
+    - "current version {{ metallb_current_version.stdout }}"
+    - "version to be applied {{ metallb_version }}"
+  when: "( metallb_controller_count.stdout|int > 0 )"
+
+# [ ] Compare it to the version we're intending to install, does it match? or is it newer/older?
+
+- name: Downloading Metallb manifest
+  get_url:
+    url: "{{ metallb_manifest }}"
+    dest: "{{ metallb_destination }}"
+
+- name: Applying Metallb Manifest
+  shell: "kubectl --kubeconfig {{ kube_user_config }} create -f {{ metallb_destination }}"
+  become: no
+  register: metallb_manifest_apply
+  when: "( metallb_controller_count.stdout|int == 0 )"
+
+# [ ] Check to see if controller and speakers are running?
+
+- name: Clear layer2 configuration directory {{ metallb_layer2_temp_directory }}
+  file:
+    path: "{{ metallb_layer2_temp_directory }}"
+    state: absent
+
+- name: Create layer2 configuration directory {{ metallb_layer2_temp_directory }}
+  file:
+    path: "{{ metallb_layer2_temp_directory }}"
+    state: directory
+
+- name: Wait for Controller to start up, sleep for 1m
+  shell: "sleep 1m"
+  become: no
+  register: metallb_controller_state
+  changed_when: false
+
+- name: Copy Layer2 Configuration yaml(s)
+  template:
+    src: "../templates/ipaddresspool.yaml.j2"
+    dest: "{{ metallb_layer2_temp_directory }}/{{ metallb_layer2_prefix }}-{{ item.name }}.yaml"
+  loop: "{{ metallb.layer2 }}"
+
+- name: Apply Layer2 Configuration yaml(s)
+  shell: "kubectl --kubeconfig {{ kube_user_config }} apply -f {{ metallb_layer2_temp_directory }}/{{ metallb_layer2_prefix }}-{{ item.name }}.yaml"
+  become: no
+  loop: "{{ metallb.layer2 }}"
+
