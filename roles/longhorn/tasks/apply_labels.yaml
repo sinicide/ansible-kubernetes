@@ -1,0 +1,9 @@
+---
+- name: Applying Default Disks longhorn label to Kubernetes Node
+  shell: "kubectl --kubeconfig {{ kube_user_config }} label node --overwrite {{ ansible_fqdn }} node.longhorn.io/create-default-disk=true"
+  become: no
+  args:
+    executable: "/bin/bash"
+  delegate_to: "{{ groups['bootstrap'][0] }}"
+  delegate_facts: true
+  when: "longhorn_storage_apply"
