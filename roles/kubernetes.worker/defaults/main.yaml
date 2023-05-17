@@ -1,7 +1,3 @@
-k3s_bin_dir: "/usr/bin"
-k3s_env_file: ""
-k3s_system_env: "/etc/systemd/system/k3s.env"
-k3s_url: "{{ hostvars['dummy_k3s_node']['control_plane'] }}"
-k3s_token: "{{ hostvars['dummy_k3s_node']['token'] }}"
-k3s_cri_arg: "{% if container_runtime == 'docker' %} --{{ container_runtime }} {% else %} --containerd {% endif %}"
-k3s_exec_args: "{{ 'agent' + k3s_cri_arg }}"
+default_node_labels: ['worker=']
+combined_node_labels: "{% if node_labels is defined %}{{ default_node_labels + node_labels }}{% else %}{{ default_node_labels }}{% endif %}"
+kubelet_config_path: "/etc/kubernetes/kubelet.conf"
