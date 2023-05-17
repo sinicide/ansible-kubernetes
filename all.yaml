@@ -1,7 +1,7 @@
 ---
 # Install OS common packages and configuration
 - name: Prequisites
-  tags: common
+  tags: common,packages
   hosts: controlplanes:workers
   tasks:
     - import_role:
@@ -14,34 +14,175 @@
   tasks:
     - import_role:
         name: kubernetes.containerruntime
-        
-# Install etcd (when installing k3s)
-- name: Installing ETCD
-  tags: etcd
+
+# Install Kubernetes
+- name: Installing Kubernetes
+  tags: packages
+  gather_facts: true
   hosts: controlplanes:workers
   tasks:
     - import_role:
-        name: kubernetes.datastore
-      when: (install_k3s is defined) and (install_k3s|bool == True)
+        name: variables
 
-# Install Kubernetes (k3s/k8s)
-- name: Installing Kubernetes
-  tags: kubernetes
-  hosts: controlplanes:workers
-  tasks:
     - import_role:
         name: kubernetes.common
-    
-# Configure Control Plane Node
-- name: Configuring Control Plane Nodes
+
+# first host in controlplanes is our bootstrap
+- name: Determining Bootstrap Node
   hosts: controlplanes
+  tags: bootstrap,cni,join
   tasks:
+    - set_fact:
+        control_plane_nodes: "{{ hostvars|dict2items|selectattr('value.group_names','search','controlplanes')|map(attribute='key') }}"
+      run_once: true
+
+    - name: Register Bootstrap
+      add_host:
+        name: "{{ control_plane_nodes[0] }}"
+        groups: bootstrap
+      when: "ansible_host == control_plane_nodes[0]"
+      changed_when: false
+
+- name: Initalize Bootstrap
+  hosts: bootstrap
+  tags: bootstrap
+  gather_facts: true
+  tasks:
+    - import_role:
+        name: variables
+
     - import_role:
         name: kubernetes.controlplane
+        tasks_from: bootstrap.yaml
+      vars:
+        control_plane_nodes: "{{ control_plane_nodes }}"
 
-# Configurat Worker Nodes
-- name: Configuring Worker Nodes
-  hosts: workers
+- name: Install CNI
+  hosts: bootstrap
+  tags: bootstrap,cni
   tasks:
     - import_role:
+        name: variables
+        
+    - import_role:
+        name: kubernetes.cni
+
+- name: Update Cluster Configuration and Certs
+  hosts: controlplanes
+  tags: controlplanes
+  serial: 1
+  tasks:
+    - import_role:
+        name: variables
+
+    - import_role:
+        name: kubernetes.controlplane
+        tasks_from: group.yaml
+
+- name: Generate Join Facts
+  hosts: controlplanes
+  tags: bootstrap,controlplanes,join
+  gather_facts: false
+  tasks:
+    - import_role:
+        name: variables
+
+    - import_role:
+        name: kubernetes.controlplane
+        tasks_from: generate_join.yaml
+      run_once: true
+      when: "ansible_host == control_plane_nodes[0]"
+
+- name: Join Additional Control Planes (bootstrap node skipped)
+  hosts: controlplanes
+  gather_facts: false
+  tags: controlplanes,join
+  tasks:
+    - import_role:
+        name: variables
+        
+    - import_role:
+        name: kubernetes.controlplane
+        tasks_from: join.yaml
+      when: "ansible_host != control_plane_nodes[0]"
+
+- name: Applying node labels to Control Plane Nodes
+  hosts: controlplanes
+  tags: bootstrap,controlplanes
+  tasks:
+    - import_role:
+        name: variables
+
+    - import_role:
+        name: kubernetes.controlplane
+        tasks_from: apply_labels.yaml
+
+# Configure Worker Nodes
+- name: Generate Join Facts
+  hosts: bootstrap
+  tags: workers
+  tasks:
+    - import_role:
+        name: variables
+
+    - import_role:
         name: kubernetes.worker
+        tasks_from: generate_join.yaml
+
+- name: Join Worker Nodes
+  serial: 1
+  hosts: workers
+  tags: workers
+  tasks:
+    - import_role:
+        name: variables
+
+    - import_role:
+        name: kubernetes.worker
+        tasks_from: join.yaml
+
+- name: Applying node labels to Worker Nodes
+  hosts: workers
+  tags: bootstrap,controlplanes,workers
+  tasks:
+    - import_role:
+        name: variables
+
+    - import_role:
+        name: kubernetes.worker
+        tasks_from: apply_labels.yaml
+
+# Deploy Metallb?
+- name: Deploy Metallb
+  tags: metallb
+  hosts: bootstrap
+  tasks:
+    - import_role:
+        name: variables
+
+    - import_role:
+        name: metallb
+      when: metallb.enabled|bool
+
+# Deploy longhorn
+- name: Pre-Apply Longhorn Node Labels
+  tags: longhorn
+  hosts: controlplanes:workers
+  tasks:
+    - import_role:
+        name: variables
+
+    - import_role:
+        name: longhorn
+        tasks_from: apply_labels.yaml
+
+- name: Deploy Longhorn Storage
+  tags: longhorn
+  hosts: bootstrap
+  tasks:
+    - import_role:
+        name: variables
+
+    - import_role:
+        name: longhorn
+      when: longhorn.enabled|bool
