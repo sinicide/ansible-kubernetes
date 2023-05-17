@@ -1,0 +1,16 @@
+longhorn_version: "1.4.2"
+longhorn_manifest_url: "https://raw.githubusercontent.com/longhorn/longhorn/v{{ longhorn_version }}/deploy/longhorn.yaml"
+longhorn_manifest_configuration: "/tmp/longhorn-manifest.yaml"
+longhorn_default_configuration: "/tmp/longhorn-default-settings.yaml"
+longhorn_ui_configuration: "/tmp/longhorn_ui.yaml"
+
+longhorn_storage_apply: "{{ longhorn.storage|d(false) }}"
+longhorn_sc_path: "/tmp/longhorn_storage_class.yaml"
+
+longhorn_snapshot_job:
+  name: "default-snapshot"
+  cron:
+  groups:
+  retain: "1"
+  concurrency: "2"
+  labels:
