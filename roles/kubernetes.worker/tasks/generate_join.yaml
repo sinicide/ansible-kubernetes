@@ -1,0 +1,63 @@
+---
+# check for existing token first
+- name: Check for existing token
+  shell: "kubeadm token list | grep -ic {{ k8s_token_description }}"
+  become: yes
+  args:
+    executable: "/bin/bash"
+  failed_when: "k8s_token_count == 2"
+  register: k8s_token_count
+
+# generate a join token
+- name: Generate Join Token
+  shell: "kubeadm token create --description {{ k8s_token_description }} --ttl {{ k8s_token_ttl }} > /dev/null 2>&1"
+  become: yes
+  args:
+    executable: "/bin/bash"
+  register: k8s_token
+  when: "( k8s_token_count.stdout|int == 0)"
+  run_once: true
+
+- name: Get Join Token
+  shell: "kubeadm token list | grep -m 1 -i {{ k8s_token_description }} | awk '{ print $1 }'"
+  become: yes
+  args:
+    executable: "/bin/bash"
+  register: k8s_join_token
+
+# get token ca cert hash
+- name: Get Token CA cert hash
+  shell: "openssl x509 -pubkey -in {{ kube_certificate_dir }}/ca.crt | openssl rsa -pubin -outform der 2>/dev/null | openssl dgst -sha256 -hex | sed 's/^.* //'"
+  become: yes
+  args:
+    executable: "/bin/bash"
+  register: k8s_ca_cert_hash
+  run_once: true
+
+- name: Re-Upload Regenerated Certificates to Kubernetes Secret
+  shell: "kubeadm init phase upload-certs --upload-certs --config {{ kube_init_config_path }} | grep -E -o '^(\\w+)$'"
+  become: yes
+  args:
+    executable: "/bin/bash"
+  run_once: true
+  register: regen_certificate_key
+
+# register facts
+- set_fact:
+    join_token: "{{ k8s_join_token.stdout }}"
+    join_ca_cert_hash: "{{ k8s_ca_cert_hash.stdout_lines[0] }}"
+    join_certificate_key: "{{ regen_certificate_key.stdout }}"
+  run_once: true
+
+# - debug:
+#     msg:
+#       - "join_token: {{ join_token }}"
+#       - "ca_cert_hash: {{ join_ca_cert_hash }}"
+#       - "certificate-key: {{ join_certificate_key }}"
+
+- name: Register token on dummy host
+  add_host:
+    name: "dummy_join"
+    join_token: "{{ k8s_join_token.stdout }}"
+    join_ca_cert_hash: "{{ k8s_ca_cert_hash.stdout_lines[0] }}"
+    join_certificate_key: "{{ regen_certificate_key.stdout }}"
