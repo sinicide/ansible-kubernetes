@@ -6,3 +6,4 @@ hosts_k8s.yaml
 *.pyc
 *.crt
 *.key
+roles/kubernetes.controlplane/files/**
