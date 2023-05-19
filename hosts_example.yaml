@@ -5,39 +5,145 @@ all:
     ansible_ssh_private_key_file: '/path/to/private.pem'
     ansible_become: yes
 
-    # uncomment and set to true to deploy k3s instead of k8s
-    #install_k3s: true
+    # Kubernetes Cluster Configuration
+    kube:
+      #api:
+        # Uncomment and configure if you have a loadbalanced IP and Port for your Kubernetes Control Planes
+        #lb_endpoint: "192.168.xx.xx"
+        #lb_port: "6443"
+        # Uncomment to override default bind port for local API Server
+        #local_port: "6443"
 
-    # kubernetes cidr range
-    cluster_cidr_range: "10.10.0.0/16"
-    #service_cidr_range: "10.10.0.0/16"
+      #cluster:
+        # kubernetes cluster name, defaults to "kubernetes"
+        #name: "kubernetes"
+        # image repo, defaults to "registry.k8s.io"
+        #image_repo: "registry.k8s.io"
+        # uncomment to override service CIDR, defaults to "10.96.0.0/12"
+        #service_cidr: "10.96.0.0/12"
+        # uncomment to override dns domain name, defaults to "cluster.local"
+        #dns_domain: "cluster.local"
 
-    # control plane port (default = 6443), can be omitted
-    # bind_address
-    #api_advertised_address: "0.0.0.0"
-    #api_advertised_port: "6443"
+      # server:
+         # uncomment to add additional SAN entries for kubernetes server certificate
+      #   cert_sans:
+      #     - "load-balancer.fqdn.domain"
+         # uncomment to add additional api server arguments
+      #   extra_args:
+      #     - "anonymous-auth": "false"
+      #   controller_manager:
+           # uncomment to add additional arguments for the controller manager
+      #     extra_args:
+      #       - "enable-garbage-collector": "true"
+      #     extra_volumes:
+      #       - "name": "extraVol1"
+      #         "hostPath": "/some/path1"
+      #         "mountPath": "/some/mount1"
+      #         "pathType": "Exact"
+      #       - "name": "extraVol2"
+      #         "hostPath": "/some/path2"
+      #         "mountPath": "/some/mount2"
+      #         "readOnly": "true"
+      #         "pathType": "Prefix"
 
-    # k3s specific parameters
-    #k3s:
-    #  server_components:
-        # enabled (true) or disabled (false), default is false
-    #    coredns: true
-    #    servicelb: false
-    #    traefik: false
-    #    local_storage: false
-    #    metrics_server: true
+    # ETCD Configuration
+    # etcd:
+      # uncomment to override default, "local" or "external"
+      # type: "external"
+      # Local ETCD configuration, uncomment to override defaults
+      # local:
+      #   data_dir: ""
+      #   extra_args:
+      #     - "arg1": "value1"
+      #     - "arg2": "value2"
+      #   server_cert_sans:
+      #     - "etcd-lb.fqdn.domain"
+      #   peer_cert_sans:
+      #     - "etcd-lb.fqdn.domain"
 
-    # etcd configs
-    #etcd:
-      # enabled by default
-    #  enabled: true
-    #  secured: true
+      # External ETCD configuration, uncomment to set
+      # external:
+      #   endpoints:
+      #     - "https://etcd1.fqdn.domain:2379"
+      #     - "https://etcd2.fqdn.domain:2379"
+      #     - "https://etcd3.fqdn.domain:2379"
+      #   ca_file: "../local/path/ca.pem"
+      #   cert_file: "../local/path/cert.pem"
+      #   key_file: "../local/path/cert.key"
+
+    # MetalLB Configuration
+    # disabled by default, set to true to enable and deploy MetalLB
+    # metallb:
+    #   enalbed: true
+    #   layer2:
+    #     - name: first-pool
+    #       addresses:
+    #         - 192.168.1.240-192.168.1.250
+    #         - 192.168.2.200-192.168.2.240
+    #         - 192.168.80.0/16
+    #       autoAssign: false
+
+
+    # Longhorn Storage Configuration, disabled by default
+    # uncomment to override the default, "false"
+    longhorn:
+      enabled: true
+      # backup:
+      #   # nfs or s3, no s3 configuration within play at the moment, will add in future
+      #   type: "nfs"
+      #   target: "truenas.fqdn.domain:/mnt/path/backup"
+      # nodes:
+
+      # disks:
+      #   labels: true
+      #   storageMinimalAvailablePercentage: "10%"
+      #   storageOverProvisioningPercentage: "200%"
+      
+      # general:
+      #   upgradeChecker: false
+      #   defaultReplicaCount: 2
+      #   concurrentAutomaticEngineUpgradePerNodeLimit: 1
+      
+      # scheduling:
+      #   replicaAutoBalance: "best-effort"
+
+      # dangerZone:
+      #   kubernetesTaintToerlation:
+      #     - "key1=value1:NoSchedule"
+      #     - "key2:Noexecute"
+      #   systemManagedComponentsNodeSelector:
+      #     - "label-key1:label-value1"
+      #     - "label-key2:labe2-value2"
+      #     - "label-key3:labe3-value3"
 
 controlplanes:
   hosts:
-    kube-pod-master-1.sin.lan:
+    kube-pod-master-1:
+      # uncomment to enable longhorn storage label on node
+      # longhorn:
+      #   storage: true
+    kube-pod-master-2:
+      # uncomment to make this both a control plane and worker node
+      # kube_worker: true
+      # uncomment to specify overrides for control plane
+      # overrides:
+      #   kube:
+      #     node:
+      #       taints:
+      #         - "key1=value1:NoSchedule"
+      #         - "key2=value2:NoExecute"
+    kube-pod-master-3:
+      # uncomment to make this both a control plane and worker node
+      # kube_worker: true
 
 workers:
   hosts:
-    kube-pod-worker-1.sin.lan:
-    kube-pod-worker-2.sin.lan:
+    kube-pod-worker-1:
+      # uncomment to disable longhorn storage label on node
+      # longhorn:
+      #   storage: false
+    kube-pod-worker-2:
+      # uncomment to add additional node labels
+      # node_labels:
+      #   - "gfx="
+    kube-pod-worker-3:
