@@ -4,7 +4,9 @@ longhorn_manifest_configuration: "/tmp/longhorn-manifest.yaml"
 longhorn_default_configuration: "/tmp/longhorn-default-settings.yaml"
 longhorn_ui_configuration: "/tmp/longhorn_ui.yaml"
 
-longhorn_storage_apply: "{{ longhorn.storage|d(false) }}"
+# default true on worker nodes and default false on control planes
+longhorn_storage_apply: "{% if ansible_host in groups['controlplanes'] %}{{ longhorn.storage|d(false) }}{% else %}{{ longhorn.storage|d(true) }}{% endif %}"
+
 longhorn_sc_path: "/tmp/longhorn_storage_class.yaml"
 
 longhorn_snapshot_job:
