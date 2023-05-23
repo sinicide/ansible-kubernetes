@@ -1,4 +1,8 @@
 ---
+- name: Set current_host fact
+  set_fact:
+    current_host: "{{ ansible_host }}"
+
 - name: Applying Default Disks longhorn label to Kubernetes Node
   shell: "kubectl --kubeconfig {{ kube_user_config }} label node --overwrite {{ ansible_fqdn }} node.longhorn.io/create-default-disk=true"
   become: no
@@ -6,4 +10,4 @@
     executable: "/bin/bash"
   delegate_to: "{{ groups['bootstrap'][0] }}"
   delegate_facts: true
-  when: "longhorn_storage_apply"
+  when: "(current_host in groups['controlplanes'] and longhorn.storage|d(false)) or (current_host not in groups['controlplanes'] and longhorn.storage|d(true))"
