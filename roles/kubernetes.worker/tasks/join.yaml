@@ -3,6 +3,8 @@
     join_token: "{{ hostvars['dummy_join']['join_token'] }}"
     join_ca_cert_hash: "{{ hostvars['dummy_join']['join_ca_cert_hash'] }}"
     join_certificate_key: "{{ hostvars['dummy_join']['join_certificate_key'] }}"
+    join_lb_api_endpoint: "{{ hostvars['dummy_join']['join_lb_api_endpoint'] }}"
+    join_lb_api_port: "{{ hostvars['dummy_join']['join_lb_api_port'] }}"
   run_once: true
 
 # - debug:
@@ -10,6 +12,8 @@
 #       - "join_token: {{ join_token }}"
 #       - "ca_cert_hash: {{ join_ca_cert_hash }}"
 #       - "certificate-key: {{ join_certificate_key }}"
+#       - "join_lb_api_endpoint: {{ join_lb_api_endpoint }}"
+#       - "join_lb_api_port: {{ join_lb_api_port }}"
 
 - name: Start kubelet service
   systemd:
