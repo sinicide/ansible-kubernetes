@@ -54,6 +54,8 @@
 #       - "join_token: {{ join_token }}"
 #       - "ca_cert_hash: {{ join_ca_cert_hash }}"
 #       - "certificate-key: {{ join_certificate_key }}"
+#       - "lb_api_endpoint: {{ join_api_endpoint }}"
+#       - "lb_api_port: {{ join_api_port }}"
 
 - name: Register token on dummy host
   add_host:
@@ -61,3 +63,5 @@
     join_token: "{{ k8s_join_token.stdout }}"
     join_ca_cert_hash: "{{ k8s_ca_cert_hash.stdout_lines[0] }}"
     join_certificate_key: "{{ regen_certificate_key.stdout }}"
+    join_lb_api_endpoint: "{{ join_api_endpoint }}"
+    join_lb_api_port: "{{ join_api_port }}"
