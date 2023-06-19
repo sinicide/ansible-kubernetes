@@ -117,6 +117,13 @@ all:
       #     - "label-key1:label-value1"
       #     - "label-key2:labe2-value2"
       #     - "label-key3:labe3-value3"
+    
+    # ArgoCD
+    # uncomment to enable
+    #argocd:
+      #enabled: true
+      # uncomment to enable high-availability
+      #ha_enabled: true
 
 controlplanes:
   hosts:
