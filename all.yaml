@@ -187,3 +187,15 @@
     - import_role:
         name: longhorn
       when: longhorn.enabled|bool
+
+# Deploy ArgoCD
+- name: Deploy ArgoCD
+  tags: argocd
+  hosts: bootstrap
+  tasks:
+    - import_role:
+        name: variables
+
+    - import_role:
+        name: argocd
+      when: argocd.enabled|bool

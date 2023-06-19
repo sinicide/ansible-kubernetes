@@ -4,7 +4,7 @@ kube_home: "{% if kube_user == 'root' %}/root{% else %}/home/{{kube_user}}{% end
 
 kube_local_api_endpoint: "{{ ansible_eth0.ipv4.address }}"
 kube_local_api_port: "{% if overrides.kube.api.local_port is defined %}{{ overrides.kube.api.local_port }}{% else %}{{ kube.api.local_port|d(apiserver_default_port) }}{% endif %}"
-kube_cluster_pod_cidr: "{{ kube.cluster.pod_cidr }}"
+kube_cluster_pod_cidr: "{{ kube.cluster.pod_cidr|d('10.69.0.0/16') }}"
 kube_cluster_service_cidr: "{{ kube.cluster.service_cidr|d('10.96.0.0/12') }}"
 kube_cluster_dns_domain: "{{ kube.cluster.dns_domain|d('cluster.local') }}"
 kube_cluster_name: "{{ kube.cluster.name|d('') }}"

@@ -1,0 +1,353 @@
+---
+- name: Delete ArgoCD temp directory
+  file:
+    path: "{{ argocd_temp_dir }}/{{ item }}"
+    state: absent
+  loop:
+    - "crds"
+    - "sa"
+    - "role"
+    - "rolebinding"
+    - "configmap"
+    - "secret"
+    - "service"
+    - "deployment"
+    - "sts"
+    - "networkpolicy"
+
+- name: Create ArgoCD temp directory
+  file:
+    path: "{{ argocd_temp_dir }}/{{ item }}"
+    state: directory
+  loop:
+    - "crds"
+    - "sa"
+    - "role"
+    - "rolebinding"
+    - "configmap"
+    - "secret"
+    - "service"
+    - "deployment"
+    - "sts"
+    - "networkpolicy"
+
+# Download CRDs yamls to temp
+- name: Downloading ArgoCD Application CRD yaml
+  get_url:
+    url: "{{ argocd_application_crd_yaml }}"
+    dest: "{{ argocd_temp_dir }}/crds"
+
+- name: Downloading ArgoCD ApplicationSet CRD yaml
+  get_url:
+    url: "{{ argocd_applicationset_crd_yaml }}"
+    dest: "{{ argocd_temp_dir }}/crds"
+
+- name: Downloading ArgoCD AppProject CRD yaml
+  get_url:
+    url: "{{ argocd_appproject_crd_yaml }}"
+    dest: "{{ argocd_temp_dir }}/crds"
+
+# Download ServiceAccount yamls to temp
+- name: Downloading ArgoCD Application Service Account yaml
+  get_url:
+    url: "{{ argocd_application_sa_yaml }}"
+    dest: "{{ argocd_temp_dir }}/sa"
+
+- name: Downloading ArgoCD ApplicationSet Service Account yaml
+  get_url:
+    url: "{{ argocd_applicationset_sa_yaml }}"
+    dest: "{{ argocd_temp_dir }}/sa"
+
+- name: Downloading ArgoCD Notification Controller Service Account yaml
+  get_url:
+    url: "{{ argocd_notification_sa_yaml }}"
+    dest: "{{ argocd_temp_dir }}/sa"
+
+- name: Downloading ArgoCD Repo Server Service Account yaml
+  get_url:
+    url: "{{ argocd_repo_server_sa_yaml }}"
+    dest: "{{ argocd_temp_dir }}/sa"
+
+- name: Downloading ArgoCD Server Service Account yaml
+  get_url:
+    url: "{{ argocd_server_sa_yaml }}"
+    dest: "{{ argocd_temp_dir }}/sa"
+
+- name: Copy ArgoCD Redis HA Service Account yaml
+  copy:
+    src: "../files/argocd_redis_ha_sa.yaml"
+    dest: "{{ argocd_temp_dir }}/sa"
+  when: "argocd_ha|bool is true"
+
+- name: Copy ArgoCD Redis (Non-HA) Service Account yaml
+  get_url:
+    url: "{{ argocd_redis_sa_yaml }}"
+    dest: "{{ argocd_temp_dir }}/sa"
+  when: "argocd_ha|bool is false"
+
+# Download Role yamls to temp
+- name: Downloading ArgoCD Application Role yaml
+  get_url:
+    url: "{{ argocd_application_role_yaml }}"
+    dest: "{{ argocd_temp_dir }}/role"
+
+- name: Downloading ArgoCD ApplicationSet Role yaml
+  get_url:
+    url: "{{ argocd_applicationset_role_yaml }}"
+    dest: "{{ argocd_temp_dir }}/role"
+
+- name: Downloading ArgoCD Notification Controller Role yaml
+  get_url:
+    url: "{{ argocd_notification_role_yaml }}"
+    dest: "{{ argocd_temp_dir }}/role"
+
+- name: Downloading ArgoCD Server Role yaml
+  get_url:
+    url: "{{ argocd_server_role_yaml }}"
+    dest: "{{ argocd_temp_dir }}/role"
+
+- name: Copy ArgoCD Redis HA Role yaml
+  copy:
+    src: "../files/argocd_redis_ha_role.yaml"
+    dest: "{{ argocd_temp_dir }}/role"
+  when: "argocd_ha|bool is true"
+
+# Download ClusterRole yamls to temp
+- name: Downloading ArgoCD Application Cluster Role yaml
+  get_url:
+    url: "{{ argocd_application_cluster_role_yaml }}"
+    dest: "{{ argocd_temp_dir }}/role"
+
+- name: Downloading ArgoCD Server Cluster Role yaml
+  get_url:
+    url: "{{ argocd_server_cluster_role_yaml }}"
+    dest: "{{ argocd_temp_dir }}/role"
+
+# Download Rolebinding and ClusterRolebinding yamls to temp
+- name: Downloading ArgoCD Application RoleBinding yaml
+  get_url:
+    url: "{{ argocd_application_rb_yaml }}"
+    dest: "{{ argocd_temp_dir }}/rolebinding"
+
+- name: Downloading ArgoCD ApplicationSet RoleBinding yaml
+  get_url:
+    url: "{{ argocd_applicationset_rb_yaml }}"
+    dest: "{{ argocd_temp_dir }}/rolebinding"
+
+- name: Downloading ArgoCD Notification Controller RoleBinding yaml
+  get_url:
+    url: "{{ argocd_notification_rb_yaml }}"
+    dest: "{{ argocd_temp_dir }}/rolebinding"
+
+- name: Downloading ArgoCD Server RoleBinding yaml
+  get_url:
+    url: "{{ argocd_server_rb_yaml }}"
+    dest: "{{ argocd_temp_dir }}/rolebinding"
+
+- name: Downloading ArgoCD Application ClusterRoleBinding yaml
+  get_url:
+    url: "{{ argocd_application_crb_yaml }}"
+    dest: "{{ argocd_temp_dir }}/rolebinding"
+
+- name: Downloading ArgoCD Server ClusterRoleBinding yaml
+  get_url:
+    url: "{{ argocd_server_crb_yaml }}"
+    dest: "{{ argocd_temp_dir }}/rolebinding"
+
+- name: Copy ArgoCD Redis HA RoleBinding yaml
+  copy:
+    src: "../files/argocd_redis_ha_rb.yaml"
+    dest: "{{ argocd_temp_dir }}/rolebinding"
+  when: "argocd_ha|bool is true"
+
+# Install Configmap
+- name: Downloading ArgoCD Configmap yaml
+  get_url:
+    url: "{{ argocd_cm_yaml }}"
+    dest: "{{ argocd_temp_dir }}/configmap"
+
+- name: Downloading ArgoCD cmd-params-cm Configmap yaml
+  get_url:
+    url: "{{ argocd_cmd_params_cm_yaml }}"
+    dest: "{{ argocd_temp_dir }}/configmap"
+
+- name: Downloading ArgoCD gpg-keys-cm Configmap yaml
+  get_url:
+    url: "{{ argocd_gpg_keys_cm_yaml }}"
+    dest: "{{ argocd_temp_dir }}/configmap"
+
+- name: Downloading ArgoCD Notification Controller Configmap yaml
+  get_url:
+    url: "{{ argocd_notification_cm_yaml }}"
+    dest: "{{ argocd_temp_dir }}/configmap"
+
+- name: Downloading ArgoCD RBAC Configmap yaml
+  get_url:
+    url: "{{ argocd_rbac_cm_yaml }}"
+    dest: "{{ argocd_temp_dir }}/configmap"
+
+- name: Downloading ArgoCD ssh-known-hosts-cm Configmap yaml
+  get_url:
+    url: "{{ argocd_ssh_known_hosts_cm_yaml }}"
+    dest: "{{ argocd_temp_dir }}/configmap"
+
+- name: Downloading ArgoCD tls-certs-cm Configmap yaml
+  get_url:
+    url: "{{ argocd_tls_certs_cm_yaml }}"
+    dest: "{{ argocd_temp_dir }}/configmap"
+
+- name: Copy ArgoCD Redis HA Configmap yaml
+  copy:
+    src: "../files/argocd_redis_ha_configmap.yaml"
+    dest: "{{ argocd_temp_dir }}/configmap"
+  when: "argocd_ha|bool is true"
+
+- name: Copy ArgoCD Redis HA Health Configmap yaml
+  copy:
+    src: "../files/argocd_redis_ha_health_configmap.yaml"
+    dest: "{{ argocd_temp_dir }}/configmap"
+  when: "argocd_ha|bool is true"
+
+# Download Secrets yaml to temp
+- name: Downloading ArgoCD Secret yaml
+  get_url:
+    url: "{{ argocd_secret_yaml }}"
+    dest: "{{ argocd_temp_dir }}/secret"
+
+- name: Downloading ArgoCD Notification Controller Secret yaml
+  get_url:
+    url: "{{ argocd_notification_secret_yaml }}"
+    dest: "{{ argocd_temp_dir }}/secret"
+
+# Download Service yamls to temp
+- name: Downloading ArgoCD ApplicationSet Controller Service yaml
+  get_url:
+    url: "{{ argocd_applicationset_service_yaml }}"
+    dest: "{{ argocd_temp_dir }}/service"
+
+- name: Downloading ArgoCD Metrics Service yaml
+  get_url:
+    url: "{{ argocd_metrics_service_yaml }}"
+    dest: "{{ argocd_temp_dir }}/service"
+
+- name: Downloading ArgoCD Notification Controller Service yaml
+  get_url:
+    url: "{{ argocd_notification_metrics_service_yaml }}"
+    dest: "{{ argocd_temp_dir }}/service"
+
+- name: Downloading ArgoCD Repo Server Service yaml
+  get_url:
+    url: "{{ argocd_repo_server_service_yaml }}"
+    dest: "{{ argocd_temp_dir }}/service"
+
+- name: Downloading ArgoCD Server Service yaml
+  get_url:
+    url: "{{ argocd_server_service_yaml }}"
+    dest: "{{ argocd_temp_dir }}/service"
+
+- name: Downloading ArgoCD Server Metrics Service yaml
+  get_url:
+    url: "{{ argocd_server_metrics_service_yaml }}"
+    dest: "{{ argocd_temp_dir }}/service"
+
+- name: Copy ArgoCD Redis HA Service yaml
+  copy:
+    src: "../files/argocd_redis_ha_service.yaml"
+    dest: "{{ argocd_temp_dir }}/service"
+  when: "argocd_ha|bool is true"
+
+- name: Downloading ArgoCD Redis (Non-HA) Service yaml
+  get_url:
+    url: "{{ argocd_redis_service_yaml }}"
+    dest: "{{ argocd_temp_dir }}/service"
+  when: "argocd_ha|bool is false"
+
+# Download Deployment yamls to temp
+- name: Downloading ArgoCD ApplicationSet Controller Deployment yaml
+  get_url:
+    url: "{{ argocd_applicationset_deployment_yaml }}"
+    dest: "{{ argocd_temp_dir }}/deployment"
+
+- name: Downloading ArgoCD Notification Controller Deployment yaml
+  get_url:
+    url: "{{ argocd_notification_deployment_yaml }}"
+    dest: "{{ argocd_temp_dir }}/deployment"
+
+- name: Downloading ArgoCD Redis Deployment yaml
+  get_url:
+    url: "{{ argocd_redis_deployment_yaml }}"
+    dest: "{{ argocd_temp_dir }}/deployment"
+  when: "argocd_ha|bool is false"
+
+- name: Copy ArgoCD Redis HA Haproxy Deployment yaml
+  template:
+    src: "../templates/argocd_redis_ha_haproxy_deployment.yaml.j2"
+    dest: "{{ argocd_temp_dir }}/deployment/argocd_redis_ha_haproxy_deployment.yaml"
+  when: "argocd_ha|bool is true"
+
+- name: Copy ArgoCD Repo Server Deployment yaml
+  template:
+    src: "../templates/argocd_repo_server_deployment.yaml.j2"
+    dest: "{{ argocd_temp_dir }}/deployment/argocd_repo_server_deployment.yaml"
+
+- name: Copy ArgoCD Server Deployment yaml
+  template:
+    src: "../templates/argocd_server_deployment.yaml.j2"
+    dest: "{{ argocd_temp_dir }}/deployment/argocd_server_deployment.yaml"
+
+# Download Statefulset yamls to temp
+- name: Downloading ArgoCD Application Controller Statefulset yaml
+  get_url:
+    url: "{{ argocd_application_sts_yaml }}"
+    dest: "{{ argocd_temp_dir }}/sts"
+
+- name: Copy ArgoCD Redis HA Server Statefulset yaml
+  template:
+    src: "../templates/argocd_redis_ha_server_sts.yaml.j2"
+    dest: "{{ argocd_temp_dir }}/sts/argocd_redis_ha_server_sts.yaml"
+  when: "argocd_ha|bool is true"
+
+# Download NetworkPolicy yamls to temp
+- name: Downloading ArgoCD Application Controller Network Policy yaml
+  get_url:
+    url: "{{ argocd_application_np_yaml }}"
+    dest: "{{ argocd_temp_dir }}/networkpolicy"
+
+- name: Downloading ArgoCD ApplicationSet Controller Network Policy yaml
+  get_url:
+    url: "{{ argocd_applicationset_np_yaml }}"
+    dest: "{{ argocd_temp_dir }}/networkpolicy"
+
+- name: Downloading ArgoCD Notification Controller Network Policy yaml
+  get_url:
+    url: "{{ argocd_notification_np_yaml }}"
+    dest: "{{ argocd_temp_dir }}/networkpolicy"
+
+- name: Downloading ArgoCD Repo Server Network Policy yaml
+  get_url:
+    url: "{{ argocd_repo_server_np_yaml }}"
+    dest: "{{ argocd_temp_dir }}/networkpolicy"
+
+- name: Downloading ArgoCD Server Network Policy yaml
+  get_url:
+    url: "{{ argocd_server_np_yaml }}"
+    dest: "{{ argocd_temp_dir }}/networkpolicy"
+
+# Download Redis HA Network Policy yamls to temp
+- name: Downloading ArgoCD Redis (Non-HA) Network Policy yaml
+  get_url:
+    url: "{{ argocd_redis_np_yaml }}"
+    dest: "{{ argocd_temp_dir }}/networkpolicy"
+  when: "argocd_ha|bool is false"
+
+- name: Downloading ArgoCD Redis HA Server Network Policy yaml
+  get_url:
+    url: "{{ argocd_redis_ha_server_np_yaml }}"
+    dest: "{{ argocd_temp_dir }}/networkpolicy"
+  when: "argocd_ha|bool is true"
+
+- name: Downloading ArgoCD Redis HA Proxy Network Policy yaml
+  get_url:
+    url: "{{ argocd_redis_ha_haproxy_np_yaml }}"
+    dest: "{{ argocd_temp_dir }}/networkpolicy"
+  when: "argocd_ha|bool is true"

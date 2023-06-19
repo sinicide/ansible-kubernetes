@@ -12,6 +12,7 @@ Ansible Playbook for a Green Field Deployment Kubernetes Cluster
 - [x] Role for deploying Longhorn Storage
 - [x] Fetch kube config from control plane
 - [ ] Add Upgrade playbook for k8s
+- [x] Add role for deploying ArgoCD
 
 ## Wish list
 - Deploy Kubernetes Dashboard

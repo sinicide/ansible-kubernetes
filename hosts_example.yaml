@@ -14,11 +14,13 @@ all:
         # Uncomment to override default bind port for local API Server
         #local_port: "6443"
 
-      #cluster:
+      cluster:
         # kubernetes cluster name, defaults to "kubernetes"
         #name: "kubernetes"
         # image repo, defaults to "registry.k8s.io"
         #image_repo: "registry.k8s.io"
+        # pod_cidr range
+        pod_cidr: "10.30.0.0/16"
         # uncomment to override service CIDR, defaults to "10.96.0.0/12"
         #service_cidr: "10.96.0.0/12"
         # uncomment to override dns domain name, defaults to "cluster.local"
@@ -74,7 +76,7 @@ all:
     # MetalLB Configuration
     # disabled by default, set to true to enable and deploy MetalLB
     # metallb:
-    #   enalbed: true
+    #   enabled: true
     #   layer2:
     #     - name: first-pool
     #       addresses:
@@ -115,6 +117,13 @@ all:
       #     - "label-key1:label-value1"
       #     - "label-key2:labe2-value2"
       #     - "label-key3:labe3-value3"
+    
+    # ArgoCD
+    # uncomment to enable
+    #argocd:
+      #enabled: true
+      # uncomment to enable high-availability
+      #ha_enabled: true
 
 controlplanes:
   hosts:
