@@ -1,0 +1,68 @@
+---
+- name: Apply CRDs
+  shell: "kubectl --kubeconfig {{ kube_user_config }} apply -f {{ argocd_temp_dir }}/crds"
+  args:
+    executable: "/bin/bash"
+  register: argocd_apply_crds_output
+
+- name: Apply Service Accounts
+  shell: "kubectl --kubeconfig {{ kube_user_config }} -n {{ argocd_namespace }} apply -f {{ argocd_temp_dir }}/sa"
+  args:
+    executable: "/bin/bash"
+  register: argocd_apply_sa_output
+
+- name: Apply Roles
+  shell: "kubectl --kubeconfig {{ kube_user_config }} -n {{ argocd_namespace }} apply -f {{ argocd_temp_dir }}/role"
+  args:
+    executable: "/bin/bash"
+  register: argocd_apply_role_output
+
+- name: Apply Rolebindings
+  shell: "kubectl --kubeconfig {{ kube_user_config }} -n {{ argocd_namespace }} apply -f {{ argocd_temp_dir }}/rolebinding"
+  args:
+    executable: "/bin/bash"
+  register: argocd_apply_rolebinding_output
+
+- name: Apply Configmaps
+  shell: "kubectl --kubeconfig {{ kube_user_config }} -n {{ argocd_namespace }} apply -f {{ argocd_temp_dir }}/configmap"
+  args:
+    executable: "/bin/bash"
+  register: argocd_apply_configmap_output
+
+- name: Check for Existing Secrets
+  shell: "kubectl --kubeconfig {{ kube_user_config }} get secrets -n {{ argocd_namespace }} | grep -ic argocd-secret"
+  args:
+    executable: "/bin/bash"
+  register: argocd_secrets_count
+  failed_when: "argocd_secrets_count == 2"
+
+- name: Create Secrets
+  shell: "kubectl --kubeconfig {{ kube_user_config }} -n {{ argocd_namespace }} create -f {{ argocd_temp_dir }}/secret"
+  args:
+    executable: "/bin/bash"
+  register: argocd_apply_secret_output
+  when: "argocd_secrets_count.stdout|int == 0"
+
+- name: Apply NetworkPolicies
+  shell: "kubectl --kubeconfig {{ kube_user_config }} -n {{ argocd_namespace }} apply -f {{ argocd_temp_dir }}/networkpolicy"
+  args:
+    executable: "/bin/bash"
+  register: argocd_apply_networkpolicy_output
+
+- name: Apply Services
+  shell: "kubectl --kubeconfig {{ kube_user_config }} -n {{ argocd_namespace }} apply -f {{ argocd_temp_dir }}/service"
+  args:
+    executable: "/bin/bash"
+  register: argocd_apply_service_output
+
+- name: Apply Deployments
+  shell: "kubectl --kubeconfig {{ kube_user_config }} -n {{ argocd_namespace }} apply -f {{ argocd_temp_dir }}/deployment"
+  args:
+    executable: "/bin/bash"
+  register: argocd_apply_deployment_output
+
+- name: Apply Statefulsets
+  shell: "kubectl --kubeconfig {{ kube_user_config }} -n {{ argocd_namespace }} apply -f {{ argocd_temp_dir }}/sts"
+  args:
+    executable: "/bin/bash"
+  register: argocd_apply_sts_output

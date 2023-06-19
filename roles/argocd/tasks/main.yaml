@@ -1,0 +1,17 @@
+---
+- name: Check for CRDs
+  shell: "kubectl --kubeconfig {{ kube_user_config }} get crd | grep applications.argoproj.io"
+  become: no
+  register: argocd_crd_count
+  failed_when: "argocd_crd_count == 2"
+  changed_when: false
+
+- name: Create argocd namespace
+  shell: "kubectl --kubeconfig {{ kube_user_config }} create namespace {{ argocd_namespace }}"
+  become: no
+  register: argocd_created_namespace
+  when: "( argocd_crd_count.stdout|int == 0 )"
+  run_once: true
+
+- include_tasks: create_temp_files.yaml
+- include_tasks: apply_yaml_files.yaml

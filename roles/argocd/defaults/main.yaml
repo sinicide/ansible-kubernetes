@@ -1,0 +1,89 @@
+argocd_repo_base_url: "https://raw.githubusercontent.com/argoproj/argo-cd"
+argocd_version: "2.7.4"
+argocd_temp_dir: "/tmp/argocd"
+argocd_ha: "{{ argocd.ha_enabled|d('false') }}"
+argocd_ha_replica_count: "2"
+redis_version: "7.0.11-alpine"
+redis_replica_count: "3"
+haproxy_version: "2.6.12-alpine"
+argocd_namespace: "argocd"
+
+# CRDs yaml
+argocd_application_crd_yaml: "{{ argocd_repo_base_url }}/v{{ argocd_version }}/manifests/crds/application-crd.yaml"
+argocd_applicationset_crd_yaml: "{{ argocd_repo_base_url }}/v{{ argocd_version }}/manifests/crds/applicationset-crd.yaml"
+argocd_appproject_crd_yaml: "{{ argocd_repo_base_url }}/v{{ argocd_version }}/manifests/crds/appproject-crd.yaml"
+
+# Service Account yaml
+argocd_application_sa_yaml: "{{ argocd_repo_base_url }}/v{{ argocd_version }}/manifests/base/application-controller/argocd-application-controller-sa.yaml"
+argocd_applicationset_sa_yaml: "{{ argocd_repo_base_url }}/v{{ argocd_version }}/manifests/base/applicationset-controller/argocd-applicationset-controller-sa.yaml"
+argocd_notification_sa_yaml: "{{ argocd_repo_base_url }}/v{{ argocd_version }}/manifests/base/notification/argocd-notifications-controller-sa.yaml"
+argocd_repo_server_sa_yaml: "{{ argocd_repo_base_url }}/v{{ argocd_version }}/manifests/base/repo-server/argocd-repo-server-sa.yaml"
+argocd_server_sa_yaml: "{{ argocd_repo_base_url }}/v{{ argocd_version }}/manifests/base/server/argocd-server-sa.yaml"
+
+# Role yaml
+argocd_application_role_yaml: "{{ argocd_repo_base_url }}/v{{ argocd_version }}/manifests/base/application-controller/argocd-application-controller-role.yaml"
+argocd_applicationset_role_yaml: "{{ argocd_repo_base_url }}/v{{ argocd_version }}/manifests/base/applicationset-controller/argocd-applicationset-controller-role.yaml"
+argocd_notification_role_yaml: "{{ argocd_repo_base_url }}/v{{ argocd_version }}/manifests/base/notification/argocd-notifications-controller-role.yaml"
+argocd_server_role_yaml: "{{ argocd_repo_base_url }}/v{{ argocd_version }}/manifests/base/server/argocd-server-role.yaml"
+
+# ClusterRole yaml
+argocd_application_cluster_role_yaml: "{{ argocd_repo_base_url }}/v{{ argocd_version }}/manifests/cluster-rbac/application-controller/argocd-application-controller-clusterrole.yaml"
+argocd_server_cluster_role_yaml: "{{ argocd_repo_base_url }}/v{{ argocd_version }}/manifests/cluster-rbac/server/argocd-server-clusterrole.yaml"
+
+# Rolebinding yaml
+argocd_application_rb_yaml: "{{ argocd_repo_base_url }}/v{{ argocd_version }}/manifests/base/application-controller/argocd-application-controller-rolebinding.yaml"
+argocd_applicationset_rb_yaml: "{{ argocd_repo_base_url }}/v{{ argocd_version }}/manifests/base/applicationset-controller/argocd-applicationset-controller-rolebinding.yaml"
+argocd_notification_rb_yaml: "{{ argocd_repo_base_url }}/v{{ argocd_version }}/manifests/base/notification/argocd-notifications-controller-rolebinding.yaml"
+argocd_server_rb_yaml: "{{ argocd_repo_base_url }}/v{{ argocd_version }}/manifests/base/server/argocd-server-rolebinding.yaml"
+
+# ClusterRolebinding yaml
+argocd_application_crb_yaml: "{{ argocd_repo_base_url }}/v{{ argocd_version }}/manifests/cluster-rbac/application-controller/argocd-application-controller-clusterrolebinding.yaml"
+argocd_server_crb_yaml: "{{ argocd_repo_base_url }}/v{{ argocd_version }}/manifests/cluster-rbac/server/argocd-server-clusterrolebinding.yaml"
+
+# Configmap yaml
+argocd_cm_yaml: "{{ argocd_repo_base_url }}/v{{ argocd_version }}/manifests/base/config/argocd-cm.yaml"
+argocd_cmd_params_cm_yaml: "{{ argocd_repo_base_url }}/v{{ argocd_version }}/manifests/base/config/argocd-cmd-params-cm.yaml"
+argocd_gpg_keys_cm_yaml: "{{ argocd_repo_base_url }}/v{{ argocd_version }}/manifests/base/config/argocd-gpg-keys-cm.yaml"
+argocd_notification_cm_yaml: "{{ argocd_repo_base_url }}/v{{ argocd_version }}/manifests/base/notification/argocd-notifications-cm.yaml"
+argocd_rbac_cm_yaml: "{{ argocd_repo_base_url }}/v{{ argocd_version }}/manifests/base/config/argocd-rbac-cm.yaml"
+argocd_ssh_known_hosts_cm_yaml: "{{ argocd_repo_base_url }}/v{{ argocd_version }}/manifests/base/config/argocd-ssh-known-hosts-cm.yaml"
+argocd_tls_certs_cm_yaml: "{{ argocd_repo_base_url }}/v{{ argocd_version }}/manifests/base/config/argocd-tls-certs-cm.yaml"
+
+# secrets yaml
+argocd_secret_yaml: "{{ argocd_repo_base_url }}/v{{ argocd_version }}/manifests/base/config/argocd-secret.yaml"
+argocd_notification_secret_yaml: "{{ argocd_repo_base_url }}/v{{ argocd_version }}/manifests/base/notification/argocd-notifications-secret.yaml"
+
+# service yaml
+argocd_applicationset_service_yaml: "{{ argocd_repo_base_url }}/v{{ argocd_version }}/manifests/base/applicationset-controller/argocd-applicationset-controller-service.yaml"
+argocd_metrics_service_yaml: "{{ argocd_repo_base_url }}/v{{ argocd_version }}/manifests/base/application-controller/argocd-metrics.yaml"
+argocd_notification_metrics_service_yaml: "{{ argocd_repo_base_url }}/v{{ argocd_version }}/manifests/base/notification/argocd-notifications-controller-metrics-service.yaml"
+argocd_repo_server_service_yaml: "{{ argocd_repo_base_url }}/v{{ argocd_version }}/manifests/base/repo-server/argocd-repo-server-service.yaml"
+argocd_server_service_yaml: "{{ argocd_repo_base_url }}/v{{ argocd_version }}/manifests/base/server/argocd-server-service.yaml"
+argocd_server_metrics_service_yaml: "{{ argocd_repo_base_url }}/v{{ argocd_version }}/manifests/base/server/argocd-server-metrics.yaml"
+
+# deployment yaml
+argocd_applicationset_deployment_yaml: "{{ argocd_repo_base_url }}/v{{ argocd_version }}/manifests/base/applicationset-controller/argocd-applicationset-controller-deployment.yaml"
+argocd_notification_deployment_yaml: "{{ argocd_repo_base_url }}/v{{ argocd_version }}/manifests/base/notification/argocd-notifications-controller-deployment.yaml"
+argocd_repo_server_deployment_yaml: ""
+argocd_server_deployment_yaml: ""
+
+# statefulset yaml
+argocd_application_sts_yaml: "{{ argocd_repo_base_url }}/v{{ argocd_version }}/manifests/base/application-controller/argocd-application-controller-statefulset.yaml"
+
+# networkpolicy yaml
+argocd_application_np_yaml: "{{ argocd_repo_base_url }}/v{{ argocd_version }}/manifests/base/application-controller/argocd-application-controller-network-policy.yaml"
+argocd_applicationset_np_yaml: "{{ argocd_repo_base_url }}/v{{ argocd_version }}/manifests/base/applicationset-controller/argocd-applicationset-controller-network-policy.yaml"
+argocd_notification_np_yaml: "{{ argocd_repo_base_url }}/v{{ argocd_version }}/manifests/base/notification/argocd-notifications-controller-network-policy.yaml"
+argocd_repo_server_np_yaml: "{{ argocd_repo_base_url }}/v{{ argocd_version }}/manifests/base/repo-server/argocd-repo-server-network-policy.yaml"
+argocd_server_np_yaml: "{{ argocd_repo_base_url }}/v{{ argocd_version }}/manifests/base/server/argocd-server-network-policy.yaml"
+
+# redis Non-HA
+argocd_redis_sa_yaml: "{{ argocd_repo_base_url }}/v{{ argocd_version }}/manifests/base/redis/argocd-redis-sa.yaml"
+argocd_redis_rb_yaml: "{{ argocd_repo_base_url }}/v{{ argocd_version }}/manifests/base/redis/argocd-redis-rolebinding.yaml"
+argocd_redis_service_yaml: "{{ argocd_repo_base_url }}/v{{ argocd_version }}/manifests/base/redis/argocd-redis-service.yaml"
+argocd_redis_deployment_yaml: "{{ argocd_repo_base_url }}/v{{ argocd_version }}/manifests/base/redis/argocd-redis-deployment.yaml"
+argocd_redis_np_yaml: "{{ argocd_repo_base_url }}/v{{ argocd_version }}/manifests/base/redis/argocd-redis-network-policy.yaml"
+
+# redis HA
+argocd_redis_ha_haproxy_np_yaml: "{{ argocd_repo_base_url }}/v{{ argocd_version }}/manifests/ha/base/redis-ha/argocd-redis-ha-proxy-network-policy.yaml"
+argocd_redis_ha_server_np_yaml: "{{ argocd_repo_base_url }}/v{{ argocd_version }}/manifests/ha/base/redis-ha/argocd-redis-ha-server-network-policy.yaml"
