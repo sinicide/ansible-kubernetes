@@ -42,7 +42,7 @@ argocd_server_crb_yaml: "{{ argocd_repo_base_url }}/v{{ argocd_version }}/manife
 
 # Configmap yaml
 argocd_cm_yaml: "{{ argocd_repo_base_url }}/v{{ argocd_version }}/manifests/base/config/argocd-cm.yaml"
-argocd_cmd_params_cm_yaml: "{{ argocd_repo_base_url }}/v{{ argocd_version }}/manifests/base/config/argocd-cmd-params-cm.yaml"
+argocd_cmd_params_cm_yaml: ""
 argocd_gpg_keys_cm_yaml: "{{ argocd_repo_base_url }}/v{{ argocd_version }}/manifests/base/config/argocd-gpg-keys-cm.yaml"
 argocd_notification_cm_yaml: "{{ argocd_repo_base_url }}/v{{ argocd_version }}/manifests/base/notification/argocd-notifications-cm.yaml"
 argocd_rbac_cm_yaml: "{{ argocd_repo_base_url }}/v{{ argocd_version }}/manifests/base/config/argocd-rbac-cm.yaml"

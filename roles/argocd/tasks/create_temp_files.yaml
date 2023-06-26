@@ -167,8 +167,8 @@
     dest: "{{ argocd_temp_dir }}/configmap"
 
 - name: Downloading ArgoCD cmd-params-cm Configmap yaml
-  get_url:
-    url: "{{ argocd_cmd_params_cm_yaml }}"
+  copy:
+    src: "../files/argocd_cmd_params_cm.yaml"
     dest: "{{ argocd_temp_dir }}/configmap"
 
 - name: Downloading ArgoCD gpg-keys-cm Configmap yaml
