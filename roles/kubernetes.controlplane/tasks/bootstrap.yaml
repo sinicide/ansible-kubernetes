@@ -14,7 +14,6 @@
   template:
     src: "../templates/{{ kube_init_config_name }}.j2"
     dest: "{{ kube_init_config_path }}"
-  when: "(user_kube_config.stat.exists == false)"
   run_once: true
 
 - name: Initialize kubernetes cluster
