@@ -59,3 +59,24 @@
     value: '1'
     state: present
     reload: yes
+
+- name: Set fs.inotify.max_user_watches=1048576
+  sysctl:
+    name: fs.inotify.max_user_watches
+    value: '1048576'
+    state: present
+    reload: yes
+
+- name: Set fs.inotify.max_user_instances=8192
+  sysctl:
+    name: fs.inotify.max_user_instances
+    value: '8192'
+    state: present
+    reload: yes
+
+- name: Set vm.max_map_count=524288
+  sysctl:
+    name: vm.max_map_count
+    value: '524288'
+    state: present
+    reload: yes
