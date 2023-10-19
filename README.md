@@ -13,6 +13,8 @@ Ansible Playbook for a Green Field Deployment Kubernetes Cluster
 - [x] Fetch kube config from control plane
 - [x] Add Upgrade playbook for k8s
 - [x] Add role for deploying ArgoCD
+- [ ] Create ArgoCD Notifications Task
+- [ ] Create Kubernetes Metrics Role
 
 ## Wish list
 - Deploy Kubernetes Dashboard
