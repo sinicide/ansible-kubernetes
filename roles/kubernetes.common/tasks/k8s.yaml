@@ -16,7 +16,7 @@
   changed_when: false
 
 - debug:
-      msg: "Will attempt to install v{{ kubernetes_minor_version }}.{{ kubernetes_revision }}"
+      msg: "Will attempt to install v{{ kubernetes_minor_version }}.{{ kubernetes_revision }}-{{ kubernetes_patch }}"
 
 - debug:
     msg:
