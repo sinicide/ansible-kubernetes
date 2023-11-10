@@ -1,0 +1,7 @@
+[kubernetes]
+name=Kubernetes
+baseurl={{ k8s_rpm_repo }}
+enabled=1
+gpgcheck=1
+gpgkey={{ k8s_rpm_key }}
+exclude=kubelet kubeadm kubectl cri-tools kubernetes-cni
