@@ -15,3 +15,7 @@ arch: "{% if ansible_architecture == 'armhf' %}armhf{% elif ansible_architecture
 
 # workaround for docker-ce on focal release of ubuntu
 distro: "{% if arch == 'arm64' %}eoan{% else %}{{ ansible_distribution_release }}{% endif %}"
+
+docker_apt_key: "https://download.docker.com/linux/ubuntu/gpg"
+docker_keyring_path: "/usr/share/keyrings/docker-archive-keyring.gpg"
+docker_apt_repo: "deb [arch={{ arch }} signed-by={{ docker_keyring_path }}] https://download.docker.com/linux/ubuntu {{ distro }} stable"
