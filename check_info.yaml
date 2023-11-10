@@ -1,6 +1,8 @@
 ---
 - name: Check Kubernetes Version
   hosts: controlplanes:workers
+  roles:
+    - variables
   tasks:
   - name: Get Kubelet Minor Version
     shell: "if [ ! -z $(which kubelet) ]; then kubelet --version | awk '{ print $2 }' | grep -oP '([0-9].[0-9]+)'; fi"
@@ -11,7 +13,7 @@
     changed_when: false
 
   - name: Get Kubelet Revision
-    shell: "if [ ! -z $(which kubelet) ]; then kubelet --version | awk '{ print $2 }' | grep -oP '(?!\\.)([0-9].[0-9]+)$'; fi"
+    shell: "if [ ! -z $(which kubelet) ]; then kubelet --version | awk '{ print $2 }' | grep -oP '(?!\\.)([0-9]+)$'; fi"
     become: yes
     args:
       executable: "/bin/bash"
@@ -19,4 +21,9 @@
     changed_when: false
 
   - debug:
-      msg: "Kubelet Version: {{ kubelet_minor_version.stdout }}.{{ kubelet_revision.stdout }}"
+      msg:
+        - "Current Kubelet Version: {{ kubelet_minor_version.stdout }}.{{ kubelet_revision.stdout }}"
+        - "Would install Kubelet Version: {{ kubernetes_minor_version }}.{{ kubernetes_revision }}"
+    when:
+    - kubelet_minor_version.stdout != ""
+    - kubelet_revision.stdout != ""
