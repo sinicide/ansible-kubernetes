@@ -1,5 +1,7 @@
 # global configs
-kubernetes_version: "1.26.4"
+kubernetes_minor_version: "1.26"
+kubernetes_revision: "10-1.1"
+kubernetes_version: "{{ kubernetes_minor_version }}.{{ kubernetes_revision }}"
 
 kube_user_config: "/home/{{ ansible_user }}/.kube/config"
 k8s_token_ttl: "1h"
