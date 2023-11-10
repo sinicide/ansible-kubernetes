@@ -1,4 +1,33 @@
 ---
+- name: Get Kubelet Minor Version
+  shell: "if [ ! -z $(which kubelet) ]; then kubelet --version | awk '{ print $2 }' | grep -oP '([0-9].[0-9]+)'; fi"
+  become: yes
+  args:
+    executable: "/bin/bash"
+  register: kubelet_minor_version
+  changed_when: false
+
+- name: Get Kubelet Revision
+  shell: "if [ ! -z $(which kubelet) ]; then kubelet --version | awk '{ print $2 }' | grep -oP '(?!\\.)([0-9]+)$'; fi"
+  become: yes
+  args:
+    executable: "/bin/bash"
+  register: kubelet_revision
+  changed_when: false
+
+- debug:
+      msg: "Will attempt to install v{{ kubernetes_minor_version }}.{{ kubernetes_revision }}"
+
+- debug:
+    msg:
+      - "Current Kubelet Version Found: {{ kubelet_minor_version.stdout }}.{{ kubelet_revision.stdout }}"
+      - "{% if kubernetes_minor_version|float > kubelet_minor_version.stdout|float %}Looks like you're trying to upgrade, please run upgrade_k8s.yaml instead, this task will now fail{% elif kubernetes_minor_version|float < kubelet_minor_version.stdout|float %}Looks like you're trying to downgrade, this task will now fail{% else %}No change to version{% endif %}"
+  when:
+    - kubelet_minor_version.stdout != ""
+    - kubelet_revision.stdout != ""
+  failed_when:
+    - kubernetes_minor_version|float != kubelet_minor_version.stdout|float 
+
 - name: Add Kubernetes Apt Key
   apt_key:
     url: "{{ k8s_apt_key }}"
