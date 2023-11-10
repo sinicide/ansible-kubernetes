@@ -1,5 +1,5 @@
 # k8s
-k8s_version: "{{ kubernetes_version }}"
+k8s_version: "{{ kubernetes_version }}-{{ kubernetes_patch }}"
 # ordering here is important as kubeadm will install kubelet and kubectl as dependencies
 k8s_packages:
   - kubelet
