@@ -28,4 +28,8 @@
     msg: "{{ kubeadm_join_output.stdout }}"
   when: "(kube_config_check.stat.exists == false)"
 
+- name: Wait for 30 seconds
+  wait_for:
+    timeout: 30
+
 - include_tasks: copy_kubeconfig.yaml
