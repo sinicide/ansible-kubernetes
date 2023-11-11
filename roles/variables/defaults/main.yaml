@@ -27,3 +27,6 @@ node:
 
 # Calico Version
 calico_version: "3.25.1"
+
+# MetalLB Version
+metallb_version: "0.13.9"
