@@ -1,6 +1,7 @@
 ---
 - name: Check Kubernetes Version
   hosts: controlplanes:workers
+  tags: kubernetes
   roles:
     - variables
   tasks:
@@ -27,3 +28,77 @@
     when:
     - kubelet_minor_version.stdout != ""
     - kubelet_revision.stdout != ""
+
+- name: Check CNI Version (Calico for now)
+  hosts: controlplanes
+  tags: cni
+  roles:
+    - variables
+  tasks:
+  - name: Check for existing Calico DaemonSet
+    shell: "kubectl --kubeconfig {{ kube_user_config }} get daemonset -A | grep -ic calico-node"
+    become: no
+    failed_when: "calico_ds_count == 2"
+    register: calico_ds_count
+    changed_when: false
+    run_once: true
+
+  - name: Check for Calico version
+    shell: "kubectl --kubeconfig {{ kube_user_config }} get ds -n calico-system calico-node -o yaml | grep -m 1 'image:' | sed -nr 's/.+v([0-9.]+)/\\1/p'"
+    become: no
+    register: calico_version_found
+    changed_when: false
+    when: "( calico_ds_count.stdout|int > 0 )"
+    run_once: true
+
+  - debug:
+      msg:
+        - "Calico Version Found {{ calico_version_found.stdout }}"
+        - "Calico Version to be installed {{ calico_version }}"
+    when: "( calico_ds_count.stdout|int > 0 )"
+    run_once: true
+
+- name: Check MetalLB Version
+  hosts: controlplanes
+  tags: metallb
+  roles:
+    - variables
+  tasks:
+    - name: Check for existing Metallb Controller
+      shell: "kubectl --kubeconfig {{ kube_user_config }} get pods -A | grep metallb | grep -c controller"
+      become: no
+      failed_when: "metallb_controller_count == 2"
+      register: metallb_controller_count
+      changed_when: false
+
+    - name: Check for existing version
+      shell: "kubectl --kubeconfig {{ kube_user_config }} get deployment -n metallb-system controller -o jsonpath=\"{.spec.template.spec.containers[0].image}\" | awk -F ':v' '{print $2}'"
+      become: no
+      register: metallb_current_version
+      when: "( metallb_controller_count.stdout|int > 0 )"
+
+    - name: Current Version of Metallb Deployment on host
+      debug:
+        msg: 
+        - "current version {{ metallb_current_version.stdout }}"
+        - "version to be applied {{ metallb_version }}"
+      when: "( metallb_controller_count.stdout|int > 0 )"
+
+- name: Check Longhorn Version
+  hosts: controlplanes
+  tags: longhorn
+  roles:
+    - variables
+  tasks:
+    - name: Check for existing version
+      shell: "kubectl --kubeconfig {{ kube_user_config }} get daemonset -n longhorn-system longhorn-manager -o jsonpath=\"{.spec.template.spec.containers[0].image}\" | awk -F ':v' '{print $2}'"
+      become: no
+      register: longhorn_current_version
+      changed_when: false
+
+    - name: Current Version of Longhorn Deployment on host
+      debug:
+        msg: 
+        - "current version {{ longhorn_current_version.stdout }}"
+        - "version to be applied {{ longhorn_version }}"
+      when: longhorn_current_version.stdout != ""
