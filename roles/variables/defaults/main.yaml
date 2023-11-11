@@ -24,3 +24,6 @@ kube_lb_api_port: "{% if kube.api.lb_endpoint is defined %}{{ kube.api.lb_port|d
 
 node:
  labels: []
+
+# Calico Version
+calico_version: "3.25.1"
