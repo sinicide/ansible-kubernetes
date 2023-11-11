@@ -28,20 +28,7 @@
   failed_when:
     - kubernetes_minor_version|float != kubelet_minor_version.stdout|float 
 
-- name: Add Kubernetes Apt Key
-  apt_key:
-    url: "{{ k8s_apt_key }}"
-    keyring: "{{ k8s_keyring_path }}"
-    state: present
-  when:
-    - ansible_os_family == "Debian"
-
-- name: Add Kubernetes Repository
-  apt_repository:
-    repo: "{{ k8s_apt_repo }}"
-    state: present
-  when:
-    - ansible_os_family == "Debian"
+- include_tasks: k8s_add_repo.yaml
 
 - name: Install Kubernetes Components version v{{ k8s_version }}
   apt:
