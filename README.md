@@ -19,8 +19,20 @@ Ansible Playbook for a Green Field Deployment Kubernetes Cluster
 - Deploy External ETCD
 - Add TLS configurationf or argocd
 
-## Running Playbook
+## Running Initial Install
 The below runs everything, you can also specify specific tags
 ```
 ansible-playbook -i hosts.yaml all.yaml
+```
+
+## Running Cluster Info Checker
+This will check current kubelet version as well as current CNI (Calico), MetalLB and Longhorn
+```
+ansible-playbook -i hosts.yaml check_info.yaml
+```
+
+## Running Upgrade
+The below will upgrade kubernetes.
+```
+ansible-playbook -i hosts.yaml upgrade_k8s.yaml
 ```
