@@ -1,6 +1,6 @@
 ---
 - name: Drain Node
-  shell: "kubectl --kubeconfig {{ kube_user_config }} {{ ansible_fqdn }} --ignore-daemonsets"
+  shell: "kubectl --kubeconfig {{ kube_user_config }} drain {{ ansible_fqdn }} --ignore-daemonsets"
   become: no
   args:
     executable: "/bin/bash"
