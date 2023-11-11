@@ -15,9 +15,8 @@
 
 - debug:
     msg:
-      - "Calico Version Found {{ calico_version_found.stdout }}"
+      - "{% if calico_ds_count.stdout|int > 0 %}Calico Version Found {{ calico_version_found.stdout }}{% else %}No Calico version found{% endif %}"
       - "Calico Version to be installed {{ calico_version }}"
-  when: "( calico_ds_count.stdout|int > 0 )"
 
 - name: Download Calico Operator {{ calico_version }} yaml
   get_url:
