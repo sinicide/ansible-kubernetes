@@ -13,6 +13,8 @@ k8s_apt_repo: "deb [signed-by={{ k8s_keyring_path }}] {{ k8s_base_url }}{{ kuber
 k8s_rpm_repo: "{{ k8s_base_url }}{{ kubernetes_minor_version }}/rpm/"
 k8s_rpm_key: "{{ k8s_base_url }}{{ kubernetes_minor_version }}/rpm/repodata/repomd.xml.key"
 
+kubeadm_apply_timeout: 600
+
 # k3s
 k3s_github_url: "https://github.com/rancher/k3s/releases"
 k3s_version: "v1.19.5+k3s1"
