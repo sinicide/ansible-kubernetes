@@ -20,10 +20,9 @@
   tags: packages
   gather_facts: true
   hosts: controlplanes:workers
+  roles:
+    - variables
   tasks:
-    - import_role:
-        name: variables
-
     - import_role:
         name: kubernetes.common
 
@@ -47,10 +46,9 @@
   hosts: bootstrap
   tags: bootstrap
   gather_facts: true
+  roles:
+    - variables
   tasks:
-    - import_role:
-        name: variables
-
     - import_role:
         name: kubernetes.controlplane
         tasks_from: bootstrap.yaml
@@ -60,10 +58,9 @@
 - name: Install CNI
   hosts: bootstrap
   tags: bootstrap,cni
+  roles:
+    - variables
   tasks:
-    - import_role:
-        name: variables
-        
     - import_role:
         name: kubernetes.cni
 
@@ -71,10 +68,9 @@
   hosts: controlplanes
   tags: controlplanes
   serial: 1
+  roles:
+    - variables
   tasks:
-    - import_role:
-        name: variables
-
     - import_role:
         name: kubernetes.controlplane
         tasks_from: group.yaml
@@ -83,10 +79,9 @@
   hosts: controlplanes
   tags: bootstrap,controlplanes,join
   gather_facts: false
+  roles:
+    - variables
   tasks:
-    - import_role:
-        name: variables
-
     - import_role:
         name: kubernetes.controlplane
         tasks_from: generate_join.yaml
@@ -97,10 +92,9 @@
   hosts: controlplanes
   gather_facts: false
   tags: controlplanes,join
+  roles:
+    - variables
   tasks:
-    - import_role:
-        name: variables
-        
     - import_role:
         name: kubernetes.controlplane
         tasks_from: join.yaml
@@ -109,10 +103,9 @@
 - name: Applying node labels to Control Plane Nodes
   hosts: controlplanes
   tags: bootstrap,controlplanes
+  roles:
+    - variables
   tasks:
-    - import_role:
-        name: variables
-
     - import_role:
         name: kubernetes.controlplane
         tasks_from: apply_labels.yaml
@@ -121,10 +114,9 @@
 - name: Generate Join Facts
   hosts: bootstrap
   tags: workers
+  roles:
+    - variables
   tasks:
-    - import_role:
-        name: variables
-
     - import_role:
         name: kubernetes.worker
         tasks_from: generate_join.yaml
@@ -133,10 +125,9 @@
   serial: 1
   hosts: workers
   tags: workers
+  roles:
+    - variables
   tasks:
-    - import_role:
-        name: variables
-
     - import_role:
         name: kubernetes.worker
         tasks_from: join.yaml
@@ -144,10 +135,9 @@
 - name: Applying node labels to Worker Nodes
   hosts: workers
   tags: bootstrap,controlplanes,workers
+  roles:
+    - variables
   tasks:
-    - import_role:
-        name: variables
-
     - import_role:
         name: kubernetes.worker
         tasks_from: apply_labels.yaml
@@ -156,10 +146,9 @@
 - name: Deploy Metallb
   tags: metallb
   hosts: bootstrap
+  roles:
+    - variables
   tasks:
-    - import_role:
-        name: variables
-
     - import_role:
         name: metallb
       when: metallb.enabled|bool
@@ -168,10 +157,9 @@
 - name: Pre-Apply Longhorn Node Labels
   tags: longhorn
   hosts: controlplanes:workers
+  roles:
+    - variables
   tasks:
-    - import_role:
-        name: variables
-
     - import_role:
         name: longhorn
         tasks_from: apply_labels.yaml
@@ -180,10 +168,9 @@
 - name: Deploy Longhorn Storage
   tags: longhorn
   hosts: bootstrap
+  roles:
+    - variables
   tasks:
-    - import_role:
-        name: variables
-
     - import_role:
         name: longhorn
       when: longhorn.enabled|bool
@@ -192,10 +179,9 @@
 - name: Deploy ArgoCD
   tags: argocd
   hosts: bootstrap
+  roles:
+    - variables
   tasks:
-    - import_role:
-        name: variables
-
     - import_role:
         name: argocd
       when: argocd.enabled|bool

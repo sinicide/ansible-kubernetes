@@ -1,17 +1,34 @@
 ---
-- name: Add Kubernetes Apt Key
-  apt_key:
-    url: "https://packages.cloud.google.com/apt/doc/apt-key.gpg"
-    state: present
-  when:
-    - ansible_os_family == "Debian"
+- name: Get Kubelet Minor Version
+  shell: "if [ ! -z $(which kubelet) ]; then kubelet --version | awk '{ print $2 }' | grep -oP '([0-9].[0-9]+)'; fi"
+  become: yes
+  args:
+    executable: "/bin/bash"
+  register: kubelet_minor_version
+  changed_when: false
 
-- name: Add Kubernetes Repository
-  apt_repository:
-    repo: "deb https://apt.kubernetes.io/ kubernetes-xenial main"
-    state: present
+- name: Get Kubelet Revision
+  shell: "if [ ! -z $(which kubelet) ]; then kubelet --version | awk '{ print $2 }' | grep -oP '(?!\\.)([0-9]+)$'; fi"
+  become: yes
+  args:
+    executable: "/bin/bash"
+  register: kubelet_revision
+  changed_when: false
+
+- debug:
+      msg: "Will attempt to install v{{ kubernetes_minor_version }}.{{ kubernetes_revision }}-{{ kubernetes_patch }}"
+
+- debug:
+    msg:
+      - "Current Kubelet Version Found: {{ kubelet_minor_version.stdout }}.{{ kubelet_revision.stdout }}"
+      - "{% if kubernetes_minor_version|float > kubelet_minor_version.stdout|float %}Looks like you're trying to upgrade, please run upgrade_k8s.yaml instead, this task will now fail{% elif kubernetes_minor_version|float < kubelet_minor_version.stdout|float %}Looks like you're trying to downgrade, this task will now fail{% else %}No change to version{% endif %}"
   when:
-    - ansible_os_family == "Debian"
+    - kubelet_minor_version.stdout != ""
+    - kubelet_revision.stdout != ""
+  failed_when:
+    - kubernetes_minor_version|float != kubelet_minor_version.stdout|float 
+
+- include_tasks: k8s_add_repo.yaml
 
 - name: Install Kubernetes Components version v{{ k8s_version }}
   apt:

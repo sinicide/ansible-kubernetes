@@ -1,5 +1,8 @@
 # global configs
-kubernetes_version: "1.26.4"
+kubernetes_minor_version: "1.26"
+kubernetes_revision: "10"
+kubernetes_patch: "1.1"
+kubernetes_version: "{{ kubernetes_minor_version }}.{{ kubernetes_revision }}"
 
 kube_user_config: "/home/{{ ansible_user }}/.kube/config"
 k8s_token_ttl: "1h"
@@ -21,3 +24,12 @@ kube_lb_api_port: "{% if kube.api.lb_endpoint is defined %}{{ kube.api.lb_port|d
 
 node:
  labels: []
+
+# Calico Version
+calico_version: "3.25.1"
+
+# MetalLB Version
+metallb_version: "0.13.9"
+
+# Longhorn Version
+longhorn_version: "1.4.2"

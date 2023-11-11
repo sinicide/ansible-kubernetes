@@ -1,14 +1,15 @@
 ---
 - name: Add Docker Apt Key
   apt_key:
-    url: "https://download.docker.com/linux/ubuntu/gpg"
+    url: "{{ docker_apt_key }}"
+    keyring: "{{ docker_keyring_path }}"
     state: present
   when:
     - ansible_os_family == "Debian"
     
 - name: Add Docker Repository
   apt_repository:
-    repo: "deb [arch={{ arch }}] https://download.docker.com/linux/ubuntu {{ distro }} stable"
+    repo: "{{ docker_apt_repo }}"
     state: present
   when:
     - ansible_os_family == "Debian"

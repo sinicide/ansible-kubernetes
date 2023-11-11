@@ -1,0 +1,36 @@
+---
+- include_tasks: k8s_add_repo.yaml
+
+- name: Mark Unhold Kubeadm
+  shell: apt-mark unhold kubeadm
+  become: yes
+  args:
+    executable: "/bin/bash"
+  when:
+    - ansible_os_family == "Debian"
+
+- name: Upgrade Kubeadm to {{ k8s_version }}
+  apt:
+    name: "kubeadm={{ k8s_version }}"
+    state: present
+    update_cache: yes
+  when:
+    - ansible_os_family == "Debian"
+
+- name: Mark Hold Kubeadm
+  shell: apt-mark hold kubeadm
+  become: yes
+  args:
+    executable: "/bin/bash"
+  when:
+    - ansible_os_family == "Debian"
+
+- name: Run Kubeadm Upgrade (Can take several minutes to complete)
+  shell: "timeout {{ kubeadm_apply_timeout }} kubeadm upgrade node"
+  become: yes
+  args:
+    executable: "/bin/bash"
+  register: kubeadm_upgrade_apply
+
+- debug:
+    msg: "{{ kubeadm_upgrade_apply.stdout }}"

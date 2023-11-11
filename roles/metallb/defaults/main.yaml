@@ -1,4 +1,3 @@
-metallb_version: "0.13.9"
 metallb_manifest: "https://raw.githubusercontent.com/metallb/metallb/v{{ metallb_version }}/config/manifests/metallb-native.yaml"
 metallb_destination: "/tmp/metallb-native.yaml"
 metallb_layer2_temp_directory: "/tmp/metallb-layer2"

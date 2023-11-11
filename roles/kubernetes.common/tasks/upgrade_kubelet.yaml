@@ -1,0 +1,59 @@
+---
+- name: Drain Node
+  shell: "kubectl --kubeconfig {{ kube_user_config }} drain {{ ansible_fqdn }} --ignore-daemonsets"
+  become: no
+  args:
+    executable: "/bin/bash"
+  register: kube_drain
+  failed_when: "kube_drain.rc == 2"
+
+- name: Mark Unhold kubelet and kubectl
+  shell: apt-mark unhold {{ item }}
+  become: yes
+  args:
+    executable: "/bin/bash"
+  loop:
+    - kubelet
+    - kubectl
+  when:
+    - ansible_os_family == "Debian"
+
+- name: Upgrade kubelet and kubectl to {{ k8s_version }}
+  apt:
+    name: "{{ item }}={{ k8s_version }}"
+    state: present
+    update_cache: yes
+  loop:
+    - kubelet
+    - kubectl
+  when:
+    - ansible_os_family == "Debian"
+
+- name: Mark Hold kubelet and kubectl
+  shell: apt-mark hold {{ item }}
+  become: yes
+  args:
+    executable: "/bin/bash"
+  loop:
+    - kubelet
+    - kubectl
+  when:
+    - ansible_os_family == "Debian"
+
+- name: Restart kubelet service
+  systemd:
+    daemon_reload: true
+    name: kubelet
+    state: "restarted"
+
+- name: Wait for 30 seconds
+  wait_for:
+    timeout: 30
+
+- name: Uncordon the Node
+  shell: "kubectl --kubeconfig {{ kube_user_config }} uncordon {{ ansible_fqdn }}"
+  become: no
+  args:
+    executable: "/bin/bash"
+  register: kube_uncordon
+  failed_when: "kube_drain.rc == 2"

@@ -1,10 +1,19 @@
 # k8s
-k8s_version: "{{ kubernetes_version }}-00"
+k8s_version: "{{ kubernetes_version }}-{{ kubernetes_patch }}"
 # ordering here is important as kubeadm will install kubelet and kubectl as dependencies
 k8s_packages:
   - kubelet
   - kubectl
   - kubeadm
+
+k8s_base_url: "https://pkgs.k8s.io/core:/stable:/v"
+k8s_apt_key: "{{ k8s_base_url }}{{ kubernetes_minor_version }}/deb/Release.key"
+k8s_keyring_path: "/etc/apt/keyrings/kubernetes-apt-keyring.gpg"
+k8s_apt_repo: "deb [signed-by={{ k8s_keyring_path }}] {{ k8s_base_url }}{{ kubernetes_minor_version }}/deb/ /"
+k8s_rpm_repo: "{{ k8s_base_url }}{{ kubernetes_minor_version }}/rpm/"
+k8s_rpm_key: "{{ k8s_base_url }}{{ kubernetes_minor_version }}/rpm/repodata/repomd.xml.key"
+
+kubeadm_apply_timeout: 600
 
 # k3s
 k3s_github_url: "https://github.com/rancher/k3s/releases"

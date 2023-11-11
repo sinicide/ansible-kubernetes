@@ -1,5 +1,4 @@
 # Calico - https://github.com/projectcalico/calico/releases
-calico_version: "3.25.1"
 calico_operator_url: "https://raw.githubusercontent.com/projectcalico/calico/v{{ calico_version }}/manifests/tigera-operator.yaml"
 calico_operator_destination: "/tmp/calico-operator.yaml"
 calico_metrics_port: "1234"
