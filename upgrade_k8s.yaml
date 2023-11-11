@@ -88,3 +88,33 @@
     - import_role:
         name: kubernetes.common
         tasks_from: upgrade_kubelet.yaml
+
+- name: Check that all nodes are upgraded
+  tags: upgrade
+  gather_facts: true
+  hosts: controlplanes:workers
+  roles:
+    - variables
+  tasks:
+    - name: Get Kubelet Minor Version
+      shell: "if [ ! -z $(which kubelet) ]; then kubelet --version | awk '{ print $2 }' | grep -oP '([0-9].[0-9]+)'; fi"
+      become: yes
+      args:
+        executable: "/bin/bash"
+      register: kubelet_minor_version
+      changed_when: false
+
+    - name: Get Kubelet Revision
+      shell: "if [ ! -z $(which kubelet) ]; then kubelet --version | awk '{ print $2 }' | grep -oP '(?!\\.)([0-9]+)$'; fi"
+      become: yes
+      args:
+        executable: "/bin/bash"
+      register: kubelet_revision
+      changed_when: false
+
+    - debug:
+        msg:
+          - "Current Kubelet Version Found: {{ kubelet_minor_version.stdout }}.{{ kubelet_revision.stdout }}"
+      failed_when:
+        - kubernetes_minor_version|float != kubelet_minor_version.stdout|float
+        - kubernetes_revision|int != kubelet_revision.stdout|int
