@@ -15,27 +15,23 @@
 
 - debug:
     msg:
-      - "Calico Version Found {{ calico_version_found.stdout }}"
+      - "{% if calico_ds_count.stdout|int > 0 %}Calico Version Found {{ calico_version_found.stdout }}{% else %}No Calico version found{% endif %}"
       - "Calico Version to be installed {{ calico_version }}"
-  when: "( calico_ds_count.stdout|int > 0 )"
 
 - name: Download Calico Operator {{ calico_version }} yaml
   get_url:
     url: "{{ calico_operator_url }}"
     dest: "{{ calico_operator_destination }}"
-  when: "( calico_ds_count.stdout|int >= 0 )"
+  when: (( calico_ds_count.stdout|int == 0 ) or 
+    (calico_version_found.stdout is version(calico_version, '<')))
 
-- name: Applying Calico Operator
-  shell: "kubectl --kubeconfig {{ kube_user_config }} create -f {{ calico_operator_destination }}"
-  become: no
-  register: calico_operator_apply
-  when: "( calico_ds_count.stdout|int == 0 )"
-
-- name: Replace Calico Operator
-  shell: "kubectl --kubeconfig {{ kube_user_config }} replace -f {{ calico_operator_destination }}"
+# note replace command might fail sometimes due to resource not yet existing, so create needs to be ran before replace
+- name: Create/Replace Calico Operator
+  shell: "kubectl --kubeconfig {{ kube_user_config }} {% if calico_ds_count.stdout|int == 0 %}create{% else %}replace{% endif %} -f {{ calico_operator_destination }}"
   become: no
   register: calico_operator_upgrade
-  when: "( calico_ds_count.stdout|int > 0 ) and ( calico_version_found.stdout|string != calico_version|string )"
+  when: (( calico_ds_count.stdout|int == 0 ) or
+    (calico_version_found.stdout is version(calico_version, '<')))
 
 - name: Copy calico-custom-resources.yaml
   template:

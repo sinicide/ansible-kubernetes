@@ -21,14 +21,15 @@
 - name: Current Version of Longhorn Deployment on host
   debug:
     msg: 
-    - "current version {{ longhorn_current_version.stdout }}"
-    - "version to be applied {{ longhorn_version }}"
-  when: "( longhorn_count.stdout|int > 0 )"
+    - "{% if longhorn_count.stdout|int > 0 %}Current Version Found {{ longhorn_current_version.stdout }}{% else %}No Version Found{% endif %}"
+    - "Version to be Installed {{ longhorn_version }}"
 
 - name: Downloading longhorn manifest
   get_url:
     url: "{{ longhorn_manifest_url }}"
     dest: "{{ longhorn_manifest_configuration }}"
+  when: ((longhorn_count.stdout == 0) or 
+    (longhorn_current_version.stdout is version(longhorn_version, '<')))
 
 - name: Verify longhorn-system namespace exists
   shell: "kubectl --kubeconfig {{ kube_user_config }} get namespace | grep -c longhorn-system"
@@ -55,15 +56,15 @@
   become: no
   register: longhorn_default_configuration_apply
   run_once: true
-  when: "( longhorn_count.stdout|int == 0 )"
+  when: "( longhorn_count.stdout|int == 0 )" 
 
-# need to implement an alternative option for replace instead of create command
 - name: Applying longhorn manifest
   shell: "kubectl --kubeconfig {{ kube_user_config }} apply -f {{ longhorn_manifest_configuration }}"
   become: no
   register: longhorn_manifest_apply
   run_once: true
-  when: "( longhorn_count.stdout|int == 0 )"
+  when: (( longhorn_count.stdout|int == 0 ) or
+    (longhorn_current_version.stdout is version(longhorn_version, '<')))
 
 # Install Longhorn UI, should I do a check to see if it's already installed?
 - name: Copying over longhorn ui yaml
