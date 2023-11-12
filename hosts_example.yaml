@@ -47,6 +47,11 @@ all:
       #         "mountPath": "/some/mount2"
       #         "readOnly": "true"
       #         "pathType": "Prefix"
+    
+    # uncomment to enable high availability for Metrics Server
+    # metrics:
+      # default is false
+      # high_availability: true
 
     # ETCD Configuration
     # etcd:
