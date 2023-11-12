@@ -29,7 +29,7 @@
 # first host in controlplanes is our bootstrap
 - name: Determining Bootstrap Node
   hosts: controlplanes
-  tags: bootstrap,cni,join
+  tags: bootstrap,cni,join,metallb
   tasks:
     - set_fact:
         control_plane_nodes: "{{ hostvars|dict2items|selectattr('value.group_names','search','controlplanes')|map(attribute='key') }}"
