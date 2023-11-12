@@ -18,22 +18,22 @@
 - name: Current Version of Metallb Deployment on host
   debug:
     msg: 
-    - "current version {{ metallb_current_version.stdout }}"
-    - "version to be applied {{ metallb_version }}"
-  when: "( metallb_controller_count.stdout|int > 0 )"
-
-# [ ] Compare it to the version we're intending to install, does it match? or is it newer/older?
+    - "{% if metallb_controller_count.stdout|int > 0 %}Current Version Found {{ metallb_current_version.stdout }}{% else %}No Version Found{% endif %}"
+    - "Version to be installed {{ metallb_version }}"
 
 - name: Downloading Metallb manifest
   get_url:
     url: "{{ metallb_manifest }}"
     dest: "{{ metallb_destination }}"
+  when: ((metallb_controller_count.stdout == 0) or 
+    (metallb_current_version.stdout is version(metallb_version, '<')))
 
 - name: Applying Metallb Manifest
-  shell: "kubectl --kubeconfig {{ kube_user_config }} create -f {{ metallb_destination }}"
+  shell: "kubectl --kubeconfig {{ kube_user_config }} {% if metallb_controller_count.stdout|int == 0 %}create{% else %}apply{% endif %} -f {{ metallb_destination }}"
   become: no
   register: metallb_manifest_apply
-  when: "( metallb_controller_count.stdout|int == 0 )"
+  when: (( metallb_controller_count.stdout|int >= 0 ) or 
+    (metallb_current_version.stdout is version(metallb_version, '<')))
 
 # [ ] Check to see if controller and speakers are running?
 
