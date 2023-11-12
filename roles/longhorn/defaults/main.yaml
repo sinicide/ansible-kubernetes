@@ -11,3 +11,8 @@ longhorn_snapshot_job:
   retain: "1"
   concurrency: "2"
   labels:
+
+# Default longhorn settings
+longhorn:
+  general:
+    concurrentAutomaticEngineUpgradePerNodeLimit: "1"
