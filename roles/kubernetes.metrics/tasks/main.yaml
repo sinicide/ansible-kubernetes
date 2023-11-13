@@ -11,7 +11,7 @@
   become: no
   register: metrics_server_current_version
   when: "( metrics_server_count.stdout|int > 0 )"
-
+  
 - name: Current Version of Metrics Server Deployment on host
   debug:
     msg: 
@@ -23,14 +23,14 @@
     url: "{{ metrics_server_manifest }}"
     dest: "{{ metrics_server_destination }}"
   when: ((metrics_server_count.stdout == 0) or 
-    (metrics_server_current_version.stdout is version(metrics_server_version, '<')))
+    (metrics_server_current_version.stdout|default('0') is version(metrics_server_version, '<')))
 
 - name: Create tmp directory
   file:
     path: "{{ metrics_server_tmp_dir }}"
     state: directory
   when: (( metrics_server_count.stdout|int >= 0 ) or 
-    (metrics_server_current_version.stdout is version(metrics_server_version, '<')))
+    (metrics_server_current_version.stdout|default('0') is version(metrics_server_version, '<')))
 
 - name: "Copy files to tmp directory"
   copy:
@@ -44,7 +44,7 @@
     - "rolebinding.yaml"
     - "service.yaml"
   when: (( metrics_server_count.stdout|int >= 0 ) or 
-    (metrics_server_current_version.stdout is version(metrics_server_version, '<')))
+    (metrics_server_current_version.stdout|default('0') is version(metrics_server_version, '<')))
 
 - name: "Copy PodDistruptionBudget yaml for High Availability"
   copy:
@@ -52,7 +52,7 @@
     dest: "{{ metrics_server_tmp_dir }}"
     mode: '0644'
   when: ((metrics_server_ha == true) and (( metrics_server_count.stdout|int >= 0 ) or 
-    (metrics_server_current_version.stdout is version(metrics_server_version, '<'))))
+    (metrics_server_current_version.stdout|default('0') is version(metrics_server_version, '<'))))
   
 - name: Copy over deployment yaml
   template:
@@ -60,16 +60,16 @@
     dest: "{{ metrics_server_tmp_dir }}/deployment.yaml"
     mode: '0644'
   when: (( metrics_server_count.stdout|int >= 0 ) or 
-    (metrics_server_current_version.stdout is version(metrics_server_version, '<')))
+    (metrics_server_current_version.stdout|default('0') is version(metrics_server_version, '<')))
 
 - name: Applying Metrics Server Manifest
   shell: "kubectl --kubeconfig {{ kube_user_config }} apply -f {{ metrics_server_tmp_dir }}"
   become: no
   register: metrics_server_manifest_apply
   when: (( metrics_server_count.stdout|int >= 0 ) or 
-    (metrics_server_current_version.stdout is version(metrics_server_version, '<')))
+    (metrics_server_current_version.stdout|default('0') is version(metrics_server_version, '<')))
 
 - debug:
     msg: "{{ metrics_server_manifest_apply.stdout }}"
   when: (( metrics_server_count.stdout|int >= 0 ) or 
-    (metrics_server_current_version.stdout is version(metrics_server_version, '<')))
+    (metrics_server_current_version.stdout|default('0') is version(metrics_server_version, '<')))
