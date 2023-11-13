@@ -1,0 +1,6 @@
+metrics_server_manifest: "https://github.com/kubernetes-sigs/metrics-server/releases/download/v{{ metrics_server_version }}/{% if metrics.high_availability is defined and metrics.high_availability == true %}high-availability-1.21+{% else %}components{% endif %}.yaml"
+metrics_server_destination: "/tmp/metrics-server-component.orig.yaml"
+metrics_server_ha: (metrics.high_availability | default(false))
+metrics_server_replicas: "{% if metrics_server_ha == true %}2{% else %}1{% endif %}"
+metrics_server_max_unavailable: "{% if metrics_server_ha == true %}1{% else %}0{% endif %}"
+metrics_server_tmp_dir: "/tmp/metrics_server"

@@ -29,7 +29,7 @@
 # first host in controlplanes is our bootstrap
 - name: Determining Bootstrap Node
   hosts: controlplanes
-  tags: bootstrap,cni,join,metallb,longhorn
+  tags: bootstrap,cni,join,metrics,metallb,longhorn
   tasks:
     - set_fact:
         control_plane_nodes: "{{ hostvars|dict2items|selectattr('value.group_names','search','controlplanes')|map(attribute='key') }}"
@@ -141,6 +141,16 @@
     - import_role:
         name: kubernetes.worker
         tasks_from: apply_labels.yaml
+
+# Deploy Metrics Server
+- name: Install Metrics Server 
+  hosts: bootstrap
+  tags: metrics
+  roles:
+    - variables
+  tasks:
+    - import_role:
+        name: kubernetes.metrics
 
 # Deploy Metallb?
 - name: Deploy Metallb

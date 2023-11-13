@@ -1,0 +1,75 @@
+---
+- name: Check for existing Metrics Server
+  shell: "kubectl --kubeconfig {{ kube_user_config }} get pods -n kube-system | grep -c metrics-server"
+  become: no
+  failed_when: "metrics_server_count == 2"
+  register: metrics_server_count
+  changed_when: false
+
+- name: Check for existing version
+  shell: "kubectl --kubeconfig {{ kube_user_config }} get deployment -n kube-system metrics-server -o jsonpath=\"{.spec.template.spec.containers[0].image}\" | awk -F ':v' '{print $2}'"
+  become: no
+  register: metrics_server_current_version
+  when: "( metrics_server_count.stdout|int > 0 )"
+
+- name: Current Version of Metrics Server Deployment on host
+  debug:
+    msg: 
+    - "{% if metrics_server_count.stdout|int > 0 %}Current Version Found {{ metrics_server_current_version.stdout }}{% else %}No Version Found{% endif %}"
+    - "Version to be installed {{ metrics_server_version }}"
+
+- name: Downloading Metrics Server manifest
+  get_url:
+    url: "{{ metrics_server_manifest }}"
+    dest: "{{ metrics_server_destination }}"
+  when: ((metrics_server_count.stdout == 0) or 
+    (metrics_server_current_version.stdout is version(metrics_server_version, '<')))
+
+- name: Create tmp directory
+  file:
+    path: "{{ metrics_server_tmp_dir }}"
+    state: directory
+  when: (( metrics_server_count.stdout|int >= 0 ) or 
+    (metrics_server_current_version.stdout is version(metrics_server_version, '<')))
+
+- name: "Copy files to tmp directory"
+  copy:
+    src: "../files/{{ item }}"
+    dest: "{{ metrics_server_tmp_dir }}"
+    mode: '0644'
+  with_items:
+    - "apiservice.yaml"
+    - "clusterrole.yaml"
+    - "clusterrolebinding.yaml"
+    - "rolebinding.yaml"
+    - "service.yaml"
+  when: (( metrics_server_count.stdout|int >= 0 ) or 
+    (metrics_server_current_version.stdout is version(metrics_server_version, '<')))
+
+- name: "Copy PodDistruptionBudget yaml for High Availability"
+  copy:
+    src: "../files/poddistruptionbudget.yaml"
+    dest: "{{ metrics_server_tmp_dir }}"
+    mode: '0644'
+  when: ((metrics_server_ha == true) and (( metrics_server_count.stdout|int >= 0 ) or 
+    (metrics_server_current_version.stdout is version(metrics_server_version, '<'))))
+  
+- name: Copy over deployment yaml
+  template:
+    src: "../templates/deployment.yaml.j2"
+    dest: "{{ metrics_server_tmp_dir }}/deployment.yaml"
+    mode: '0644'
+  when: (( metrics_server_count.stdout|int >= 0 ) or 
+    (metrics_server_current_version.stdout is version(metrics_server_version, '<')))
+
+- name: Applying Metrics Server Manifest
+  shell: "kubectl --kubeconfig {{ kube_user_config }} apply -f {{ metrics_server_tmp_dir }}"
+  become: no
+  register: metrics_server_manifest_apply
+  when: (( metrics_server_count.stdout|int >= 0 ) or 
+    (metrics_server_current_version.stdout is version(metrics_server_version, '<')))
+
+- debug:
+    msg: "{{ metrics_server_manifest_apply.stdout }}"
+  when: (( metrics_server_count.stdout|int >= 0 ) or 
+    (metrics_server_current_version.stdout is version(metrics_server_version, '<')))
