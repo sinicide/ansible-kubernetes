@@ -19,7 +19,8 @@ Ansible Playbook for a Green Field Deployment Kubernetes Cluster
 ## Wish list
 - Deploy Kubernetes Dashboard
 - Deploy External ETCD
-- Add TLS configurationf or argocd
+- Add TLS configuration for argocd
+- Properly configure kubelet for TLS
 
 ## Running Initial Install
 The below runs everything, you can also specify specific tags
