@@ -28,6 +28,12 @@ The below runs everything, you can also specify specific tags
 ansible-playbook -i hosts.yaml all.yaml
 ```
 
+## Joining a New Node to existing cluster as a Worker
+The following 2 tags are needed to join deploy and join a new node leaving the existing nodes intact.
+```
+ansible-playbook -i hosts.yaml all.yaml --tags=packages,workers
+```
+
 ## Running Cluster Info Checker
 This will check current kubelet version as well as current CNI (Calico), MetalLB and Longhorn
 ```
