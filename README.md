@@ -15,6 +15,7 @@ Ansible Playbook for a Green Field Deployment Kubernetes Cluster
 - [x] Add role for deploying ArgoCD
 - [ ] Create ArgoCD Notifications Task
 - [X] Create Kubernetes Metrics Role
+- [ ] Create a Task to rebalance the Nodes after new Node joins
 
 ## Wish list
 - Deploy Kubernetes Dashboard
