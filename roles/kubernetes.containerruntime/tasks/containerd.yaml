@@ -21,5 +21,6 @@
 - name: Start containerd Service
   systemd:
     name: containerd
-    state: restarted
+    state: started
+    enabled: true
     daemon_reload: true
