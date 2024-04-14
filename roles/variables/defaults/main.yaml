@@ -1,6 +1,6 @@
 # global configs
-kubernetes_minor_version: "1.28"
-kubernetes_revision: "8"
+kubernetes_minor_version: "1.29"
+kubernetes_revision: "3"
 kubernetes_patch: "1.1"
 kubernetes_version: "{{ kubernetes_minor_version }}.{{ kubernetes_revision }}"
 
@@ -36,4 +36,3 @@ longhorn_version: "1.4.2"
 
 # Metrics Server Version
 metrics_server_version: "0.6.4"
-
