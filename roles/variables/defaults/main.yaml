@@ -1,6 +1,6 @@
 # global configs
-kubernetes_minor_version: "1.27"
-kubernetes_revision: "7"
+kubernetes_minor_version: "1.28"
+kubernetes_revision: "8"
 kubernetes_patch: "1.1"
 kubernetes_version: "{{ kubernetes_minor_version }}.{{ kubernetes_revision }}"
 
@@ -23,7 +23,7 @@ kube_lb_api_endpoint: "{{ kube.api.lb_endpoint|d('') }}"
 kube_lb_api_port: "{% if kube.api.lb_endpoint is defined %}{{ kube.api.lb_port|d(apiserver_default_port) }}{% endif %}"
 
 node:
- labels: []
+  labels: []
 
 # Calico Version
 calico_version: "3.25.1"
@@ -36,3 +36,4 @@ longhorn_version: "1.4.2"
 
 # Metrics Server Version
 metrics_server_version: "0.6.4"
+
