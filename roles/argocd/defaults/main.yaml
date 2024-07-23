@@ -1,11 +1,11 @@
 argocd_repo_base_url: "https://raw.githubusercontent.com/argoproj/argo-cd"
-argocd_version: "2.7.4"
+argocd_version: "2.10.15"
 argocd_temp_dir: "/tmp/argocd"
 argocd_ha: "{{ argocd.ha_enabled|d('false') }}"
 argocd_ha_replica_count: "2"
-redis_version: "7.0.11-alpine"
+redis_version: "7.2.5-alpine"
 redis_replica_count: "3"
-haproxy_version: "2.6.12-alpine"
+haproxy_version: "3.0.3-alpine"
 argocd_namespace: "argocd"
 
 # CRDs yaml
@@ -87,3 +87,4 @@ argocd_redis_np_yaml: "{{ argocd_repo_base_url }}/v{{ argocd_version }}/manifest
 # redis HA
 argocd_redis_ha_haproxy_np_yaml: "{{ argocd_repo_base_url }}/v{{ argocd_version }}/manifests/ha/base/redis-ha/argocd-redis-ha-proxy-network-policy.yaml"
 argocd_redis_ha_server_np_yaml: "{{ argocd_repo_base_url }}/v{{ argocd_version }}/manifests/ha/base/redis-ha/argocd-redis-ha-server-network-policy.yaml"
+
