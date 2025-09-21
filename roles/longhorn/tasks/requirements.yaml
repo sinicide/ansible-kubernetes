@@ -1,0 +1,32 @@
+---
+- name: Install OS Packages
+  apt:
+    name: "{{ item }}"
+    state: present
+  loop: "{{ longhorn_required_pkg }}"
+  when:
+    - ansible_os_family == "Debian"
+
+- name: Check for running iscsid
+  systemd:
+    enabled: true
+    state: started
+    name: iscsid
+
+- name: Get Package Facts
+  package_facts:
+    manager: "auto"
+
+- name: Verify containerd.io version
+  assert:
+    that:
+      - "ansible_facts.packages['containerd.io'][0].version is version(longhorn_containerd_min_version, '>=')"
+    fail_msg: >-
+      "containerd.io must meet minimum required version {{ longhorn_containerd_min_version }}"
+
+- name: Verify kubernetes version
+  assert:
+    that:
+      - "ansible_facts.packages['kubelet'][0].version is version(longhorn_kube_min_version, '>=')"
+    fail_msg: >-
+      "Kubernetes version must meet minimum required version {{ longhorn_kube_min_version }}"
