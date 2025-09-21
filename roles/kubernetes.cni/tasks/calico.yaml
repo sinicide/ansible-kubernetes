@@ -18,11 +18,18 @@
       - "{% if calico_ds_count.stdout|int > 0 %}Calico Version Found {{ calico_version_found.stdout }}{% else %}No Calico version found{% endif %}"
       - "Calico Version to be installed {{ calico_version }}"
 
+- name: Download Calico Operator {{ calico_version }} crds
+  get_url:
+    url: "{{ calico_operator_crd_url }}"
+    dest: "{{ calico_operator_crd_destination }}"
+  when: (( calico_ds_count.stdout|int == 0 ) or
+    (calico_version_found.stdout is version(calico_version, '<')))
+
 - name: Download Calico Operator {{ calico_version }} yaml
   get_url:
     url: "{{ calico_operator_url }}"
     dest: "{{ calico_operator_destination }}"
-  when: (( calico_ds_count.stdout|int == 0 ) or 
+  when: (( calico_ds_count.stdout|int == 0 ) or
     (calico_version_found.stdout is version(calico_version, '<')))
 
 # note replace command might fail sometimes due to resource not yet existing, so create needs to be ran before replace
