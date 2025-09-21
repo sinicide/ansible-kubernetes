@@ -1,0 +1,7 @@
+[crio.metrics]
+enable_metrics = true
+metrics_port = {{ crio.metrics.port }}"
+{% if crio.ssl_enabled %}
+metrics_cert = "{{ crio.metrics.ssl_cert }}"
+metrics_key = "{{ crio.metrics.ssl_key }}"
+{% endif %}
