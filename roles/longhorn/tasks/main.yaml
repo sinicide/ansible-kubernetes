@@ -12,24 +12,24 @@
   changed_when: false
 
 - name: Check for existing version
-  shell: "kubectl --kubeconfig {{ kube_user_config }} get daemonset -n longhorn-system longhorn-manager -o jsonpath=\"{.spec.template.spec.containers[0].image}\" | awk -F ':v' '{print $2}'"
+  shell: 'kubectl --kubeconfig {{ kube_user_config }} get daemonset -n longhorn-system longhorn-manager -o jsonpath="{.spec.template.spec.containers[0].image}" | awk -F '':v'' ''{print $2}'''
   become: no
   register: longhorn_current_version
   when: "( longhorn_count.stdout|int > 0 )"
   changed_when: false
 
-- name: Current Version of Longhorn Deployment on host
-  debug:
-    msg: 
-    - "{% if longhorn_count.stdout|int > 0 %}Current Version Found {{ longhorn_current_version.stdout }}{% else %}No Version Found{% endif %}"
-    - "Version to be Installed {{ longhorn_version }}"
+- name: Check that Longhorn not deployed
+  assert:
+    that:
+      - "{{ longhorn_count.stdout|int <=0 }}"
+    fail_msg: >-
+      "Longhorn version {{ longhorn_current_version.stdout }} is deployed, this is meant for initial deployment"
 
 - name: Downloading longhorn manifest
   get_url:
     url: "{{ longhorn_manifest_url }}"
     dest: "{{ longhorn_manifest_configuration }}"
-  when: ((longhorn_count.stdout == 0) or 
-    (longhorn_current_version.stdout is version(longhorn_version, '<')))
+  when: ((longhorn_count.stdout == 0)
 
 - name: Verify longhorn-system namespace exists
   shell: "kubectl --kubeconfig {{ kube_user_config }} get namespace | grep -c longhorn-system"
@@ -56,7 +56,7 @@
   become: no
   register: longhorn_default_configuration_apply
   run_once: true
-  when: "( longhorn_count.stdout|int == 0 )" 
+  when: "( longhorn_count.stdout|int == 0 )"
 
 - name: Applying longhorn manifest
   shell: "kubectl --kubeconfig {{ kube_user_config }} apply -f {{ longhorn_manifest_configuration }}"
@@ -88,3 +88,4 @@
   become: no
   register: longhorn_sc_apply
   run_once: true
+
