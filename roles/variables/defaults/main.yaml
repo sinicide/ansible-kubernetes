@@ -36,3 +36,6 @@ longhorn_version: "1.4.2"
 
 # Metrics Server Version
 metrics_server_version: "0.6.4"
+
+# SSL
+ssl_enabled: false
