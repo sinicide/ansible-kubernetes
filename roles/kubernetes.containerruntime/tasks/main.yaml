@@ -3,3 +3,6 @@
 - include_tasks: containerd.yaml
   when: container_runtime_engine == 'containerd'
 
+# Install CRI-O
+- include_tasks: crio.yaml
+  when: container_runtime_engine == 'crio'

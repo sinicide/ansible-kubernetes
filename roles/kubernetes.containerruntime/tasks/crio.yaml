@@ -1,0 +1,59 @@
+---
+- name: Add CRI-O Apt Key
+  apt_key:
+    url: "{{ crio.apt_key }}"
+    keyring: "{{ crio.keyring_path }}"
+    state: present
+  when:
+    - ansible_os_family == "Debian"
+
+- name: Add CRI-O Apt Repo
+  apt_repository:
+    repo: "{{ crio.apt_repo }}"
+    state: present
+  when:
+    - ansible_os_family == "Debian"
+
+- name: Install CRI-O
+  apt:
+    name: "{{ item }}"
+    state: present
+    update_cache: yes
+  loop: "{{ crio_packages }}"
+  when:
+    - ansible_os_family == "Debian"
+
+- name: Copy Metrics Configuration
+  template:
+    src: "../templates/crio/01-metrics.conf.j2"
+    dest: "/etc/crio/crio.conf.d/01-metrics.conf"
+    owner: "root"
+    group: "root"
+    mode: "0644"
+  when: crio.metrics.enabled
+
+- name: Copy Open Telemetry Configuration
+  template:
+    src: "../templates/crio/01-tracing.conf.j2"
+    dest: "/etc/crio/crio.conf.d/01-tracing.conf"
+    owner: "root"
+    group: "root"
+    mode: "0644"
+  when: crio.optl.enabled
+
+# Todo: Implement SSL Certs
+
+- name: Start CRI-O
+  systemd:
+    name: crio
+    state: started
+    enabled: true
+    daemon_reload: true
+
+# install crictl
+- name: Extract crictl cli
+  unarchive:
+    src: "{{ crictl_download_url }}"
+    dest: "/usr/local/bin"
+    remote_src: true
+    validate_certs: true
