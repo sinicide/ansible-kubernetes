@@ -6,7 +6,7 @@
   tasks:
     - import_role:
         name: os.common
-  
+
 # Install Container Runtime
 - name: Installing Container Runtime
   tags: cri,packages
@@ -143,7 +143,7 @@
         tasks_from: apply_labels.yaml
 
 # Deploy Metrics Server
-- name: Install Metrics Server 
+- name: Install Metrics Server
   hosts: bootstrap
   tags: metrics
   roles:
@@ -183,6 +183,11 @@
   tasks:
     - import_role:
         name: longhorn
+        tasks_from: requirements.yaml
+      when: longhorn.enabled|bool
+
+    - import_role:
+        name: longhorn
       when: longhorn.enabled|bool
 
 # Deploy ArgoCD
@@ -195,3 +200,4 @@
     - import_role:
         name: argocd
       when: argocd.enabled|bool
+
