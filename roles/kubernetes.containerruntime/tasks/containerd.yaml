@@ -1,4 +1,6 @@
 ---
+- include_tasks: docker_repo.yaml
+
 - name: Install Containerd Runtime
   apt:
     name: "containerd.io"
@@ -25,4 +27,3 @@
     state: started
     enabled: true
     daemon_reload: true
-

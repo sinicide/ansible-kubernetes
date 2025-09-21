@@ -1,6 +1,5 @@
 ---
-# add docker repo, used for both docker and containerd
-- include_tasks: docker_repo.yaml
-
 # Install containerd (default)
 - include_tasks: containerd.yaml
+  when: container_runtime_engine == 'containerd'
+
