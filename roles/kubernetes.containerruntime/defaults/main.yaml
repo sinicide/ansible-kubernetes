@@ -19,9 +19,31 @@ arch: "{% if ansible_architecture == 'armhf' %}armhf{% elif ansible_architecture
 # workaround for docker-ce on focal release of ubuntu
 distro: "{% if arch == 'arm64' %}eoan{% else %}{{ ansible_distribution_release }}{% endif %}"
 
-docker_apt_key: "https://download.docker.com/linux/ubuntu/gpg"
-docker_keyring_path: "/usr/share/keyrings/docker-archive-keyring.gpg"
-docker_apt_repo: "deb [arch={{ arch }} signed-by={{ docker_keyring_path }}] https://download.docker.com/linux/ubuntu {{ distro }} stable"
+docker:
+  apt_key: "https://download.docker.com/linux/ubuntu/gpg"
+  keyring_path: "/usr/share/keyrings/docker-archive-keyring.gpg"
+  apt_repo: "deb [arch={{ arch }} signed-by={{ docker_keyring_path }}] https://download.docker.com/linux/ubuntu {{ distro }} stable"
 
 containerd:
 
+crio_version: "1.34"
+crio_packages:
+  - "crio"
+  - "runc"
+
+crio:
+  apt_key: "https://download.opensuse.org/repositories/isv:/cri-o:/stable:/v{{ crio_version }}/deb/Release.key"
+  keyring_path: "/etc/apt/keyrings/cri-o-apt-keyring.gpg"
+  apt_repo: "deb [signed-by={{ crio.keyring_path }}] https://download.opensuse.org/repositories/isv:/cri-o:/stable:/v{{ crio_version }}/deb/ /"
+  ssl_enabled: "{{ ssl_enabled | default(false) }}"
+  metrics:
+    enabled: false
+    port: "9090"
+    ssl_cert: "/var/private/ssl/crio.pem"
+    ssl_key: "/var/private/ssl/crio.key"
+  optl:
+    enabled: false
+    endpoint: "127.0.0.1:4317"
+
+crictl_version: "1.34.0"
+crictl_download_url: "https://github.com/kubernetes-sigs/cri-tools/releases/download/v{{ crictl_version }}/crictl-v{{ crictl_version }}-linux-amd64.tar.gz"
