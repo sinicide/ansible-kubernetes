@@ -8,14 +8,15 @@
 
 - name: Set default configs
   shell: "containerd config default > /etc/containerd/config.toml"
-  become: yes
+  become: true
   args:
     executable: "/bin/bash"
 
 - name: Set SystemdCgroup = true
+  become: true
   replace:
     path: /etc/containerd/config.toml
-    regexp: '(SystemdCgroup = )(.+)'
+    regexp: "(SystemdCgroup = )(.+)"
     replace: '\1true'
 
 - name: Start containerd Service
@@ -24,3 +25,4 @@
     state: started
     enabled: true
     daemon_reload: true
+
