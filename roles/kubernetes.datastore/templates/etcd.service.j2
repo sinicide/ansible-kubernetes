@@ -1,0 +1,14 @@
+[Unit]
+Description=etcd - highly-available key value store
+Documentation=https://github.com/coreos/etcd
+Documentation=man:etcd
+After=network.target
+
+[Install]
+WantedBy=multi-user.target
+
+[Service]
+Type=notify
+ExecStart={{ etcd_bin_path }}/etcd --config-file {{ etcd_config_file_path }}
+Restart=always
+RestartSec=5
