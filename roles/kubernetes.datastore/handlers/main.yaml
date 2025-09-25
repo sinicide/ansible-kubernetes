@@ -1,3 +1,0 @@
----
-- name: restart etcd service
-  include_tasks: ../tasks/restart_etcd.yaml
