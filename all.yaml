@@ -26,6 +26,18 @@
     - import_role:
         name: kubernetes.common
 
+# Install external ETCD
+- name: Deploy External ETCD
+  tags: etcd
+  gather_facts: true
+  hosts: controlplanes
+  roles:
+    - variables
+  tasks:
+    - import_role:
+        name: kubernetes.datastore
+      when: "etcd_cluster_type == 'external'"
+
 # first host in controlplanes is our bootstrap
 - name: Determining Bootstrap Node
   hosts: controlplanes
@@ -200,4 +212,3 @@
     - import_role:
         name: argocd
       when: argocd.enabled|bool
-
