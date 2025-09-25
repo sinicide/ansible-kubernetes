@@ -9,6 +9,6 @@ WantedBy=multi-user.target
 
 [Service]
 Type=notify
-ExecStart={{ etcd_bin_path }}/etcd --config-file {{ etcd_config_file_path }}
+ExecStart={{ etcd_bin_path }}/etcd --config-file {{ etcd_config.config_dir }}/etcd.conf.yml
 Restart=always
 RestartSec=5
