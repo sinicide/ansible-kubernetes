@@ -1,0 +1,44 @@
+---
+- name: Creating SSL directory
+  file:
+    path: "{{ etcd_ssl_dir }}/{{ item }}"
+    state: directory
+    owner: root
+    group: root
+  loop:
+    - "client"
+    - "peer"
+
+- name: Copying Root Certificate Authority
+  copy:
+    src: "{{ etcd.custom_config.ssl.ca_file }}"
+    dest: "{{ item }}"
+    owner: root
+    group: root
+    mode: "0644"
+  loop:
+    - "{{ etcd_config.ssl.client_transport_security.ca_file }}"
+    - "{{ etcd_config.ssl.peer_transport_security.ca_file }}"
+
+- name: Copying Peer Certificate
+  copy:
+    src: "{{ etcd.custom_config.ssl.cert_file }}"
+    dest: "{{ item }}"
+    owner: root
+    group: root
+    mode: "0644"
+  loop:
+    - "{{ etcd_config.ssl.client_transport_security.cert_file }}"
+    - "{{ etcd_config.ssl.peer_transport_security.cert_file }}"
+
+- name: Copying Peer Key
+  copy:
+    src: "{{ etcd.custom_config.ssl.key_file }}"
+    dest: "{{ item }}"
+    owner: root
+    group: root
+    mode: "0640"
+  loop:
+    - "{{ etcd_config.ssl.client_transport_security.key_file }}"
+    - "{{ etcd_config.ssl.peer_transport_security.key_file }}"
+
