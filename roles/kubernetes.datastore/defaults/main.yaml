@@ -1,53 +1,68 @@
 # ETCD Binary Version from https://github.com/etcd-io/etcd/releases
-etcd_version: "v3.3.13"
+etcd_version: "3.6.5"
 arch: "{% if ansible_architecture == 'aarch64' %}arm64{% else %}amd64{% endif %}"
-etcd_download_url: "https://storage.googleapis.com/etcd/{{ etcd_version }}/etcd-{{ etcd_version }}-linux-{{ arch }}.tar.gz"
+etcd_download_url: "https://github.com/etcd-io/etcd/releases/download/v{{ etcd_version }}/etcd-v{{ etcd_version }}-linux-{{ arch }}.tar.gz"
 etcd_bin_path: "/usr/bin"
-etcd_config_dir: "/etc/etcd"
-etcd_config_file_path: "/etc/etcd/etcd.conf.yaml"
 etcd_system_service: "/etc/systemd/system/etcd.service"
 etcd_user: "etcd"
-etcd:
-  secured: False
+etcd_group: "{{ etcd_user }}"
+etcd_ssl_dir: "/var/private/ssl/etcd"
+etcd_health_check_command: "etcdctl {% if etcd_config.ssl.enabled %}--insecure-skip-tls-verify=true {% endif %}--endpoints={{ etcd_config.protocol }}://localhost:{{ etcd_config.client_port }} endpoint health"
 
-env_file: "/etc/systemd/system/etcd.env"
+# etcd cluster type "stacked" or "external", default "stacked" is to no deploy etcd
+etcd_cluster_type: "{{ etcd.type | default('stacked') }}"
 
-etcd_parameters:
-  client_port: "2379"
-  peer_port: "2380"
+# cluster bootstrapping type 'static' or 'discovery'
+bootstrap_type: "static"
+# member names cannot contain special characters like '-'
+# need to set load balanced option
+initial_cluster_bootstrap: "{% for cp_ips in groups['controlplanes'] %}{{ hostvars[cp_ips]['ansible_hostname'] | regex_replace('-', '') }}={{ etcd_config.protocol }}://{{ hostvars[cp_ips]['ansible_default_ipv4']['address'] }}:{{ etcd_config.peer_port }}{% if not loop.last %},{% endif %}{% endfor %}"
+
+# etcd configuration
+etcd_config:
   data_dir: "/var/lib/etcd"
-  listen_client_urls: ""
-  advertise_client_urls: ""
-  listen_peer_urls: ""
-  initial_advertise_peer_urls: ""
-  initial_cluster_token: "etcd-token"
-  initial_cluster_state: "new"
-  auto_compaction_retention: "1"
-  client_transport_security:
-    client_cert_auth: False
-    auto_tls: True
-    trusted_ca_file: "{{ etcd_config_dir }}/ssl/etcd.ca.crt"
-    cert_file: "{{ etcd_config_dir }}/ssl/etcd.client.crt"
-    key_file: "{{ etcd_config_dir }}/ssl/etcd.client.key"
-  peer_transport_security:
-    client_cert_auth: False
-    auto_tls: True
-    trusted_ca_file: "{{ etcd_config_dir }}/ssl/etcd.ca.crt"
-    cert_file: "{{ etcd_config_dir }}/ssl/etcd.peer.crt"
-    key_file: "{{ etcd_config_dir }}/ssl/etcd.peer.key"
-  heartbeat_interval: "300"
-  election_timeout: "1500"
-
-# building the initial-cluster list
-cp_hostnames: "{% for cp_hostname in groups['controlplanes'] %}{{ hostvars[cp_hostname]['ansible_facts']['hostname'] }}{% if not loop.last %},{% endif %}{% endfor%}"
-cp_ips: "{% for cp_ips in groups['controlplanes'] %}{{ hostvars[cp_ips]['ansible_default_ipv4']['address'] }}{% if not loop.last %},{% endif %}{% endfor %}"
-worker_hostnames: "{% for worker_hostname in groups['workers'] %}{{ hostvars[worker_hostname]['ansible_facts']['hostname'] }}{% if not loop.last %},{% endif %}{% endfor%}"
-worker_ips: "{% for worker_ips in groups['workers'] %}{{ hostvars[worker_ips]['ansible_default_ipv4']['address'] }}{% if not loop.last %},{% endif %}{% endfor %}"
-
-etcd_bootstrap_list: "{{ 'ignore' | etcd_bootstrap_builder(cp_hostnames, cp_ips, worker_hostnames, worker_ips, etcd_parameters.peer_port, etcd.secured) }}"
-
-cp_fqdn: "{% for cp_hostname in groups['controlplanes'] %}{{ hostvars[cp_hostname]['ansible_facts']['fqdn'] }}{% if not loop.last %},{% endif %}{% endfor%}"
-worker_fqdn: "{% for worker_hostname in groups['workers'] %}{{ hostvars[worker_hostname]['ansible_facts']['fqdn'] }}{% if not loop.last %},{% endif %}{% endfor%}"
-etcd_datastore_endpoints: "{{ 'ignore' | etcd_k3s_endpoint_builder(cp_fqdn, worker_fqdn, etcd_parameters.client_port, etcd.secured) }}"
-
-heath_check_url: "http{% if etcd.secured %}s{% endif %}://{{ inventory_hostname }}:{{ etcd_parameters.client_port }}/health"
+  config_dir: "/etc/etcd"
+  client_port: "{{ etcd.custom_config.client_port | default(2379) }}"
+  peer_port: "{{ etcd.custom_config.peer_port | default(2380) }}"
+  protocol: "http{% if etcd_config.ssl.enabled %}s{% endif %}"
+  wal:
+    max_snapshots: "{{ etcd.custom_config.wal.max_snapshots | default(5) }}"
+    max_files: "{{ etcd.custom_config.wal.max_files | default(5) }}"
+  member:
+    snapshot_count: "{{ etcd.custom_config.member.snapshot_count | default(10000) }}"
+    heartbeat_interval: "{{ etcd.custom_config.member.heartbeat_interval | default(100) }}"
+    election_timeout: "{{ etcd.custom_config.member.election_timeout | default(1000) }}"
+    quota_backend_bytes: "{{ etcd.custom_config.memeber.quota_backend_bytes | default(0) }}"
+  cluster:
+    # new or existing
+    state: "{{ etcd.custom_config.cluster.state | default('new') }}"
+    token: "{{ etcd.cutsom_config.cluster.token | default('etcd-token') }}"
+    auto_compaction_retention: "{{ etcd.custom_config.cluster.auto_compaction_retention | default(1) }}"
+    # periodic, defaults to hours when no units specified, revision
+    auto_compaction_mode: "{{ etcd.custom_config.cluster.auto_compaction_mode | default('periodic') }}"
+  logging:
+    enabled: "{{ etcd.custom_config.logging.enabled | default(false) }}"
+    level: "{{ etcd.custom_config.logging.level | default('info') }}"
+    # json or console
+    format: "{{ etcd.custom_config.logging.format | default('json') }}"
+  metrics:
+    enabled: "{{ etcd.custom_config.metrics.enabled | default(true) }}"
+    # default is basic, extensive
+    level: "{{ etcd.custom_config.metrics.level | default() }}"
+  ssl:
+    enabled: "{{ etcd.custom_config.ssl.enabled | default(false) }}"
+    tls_min_version: "{{ etcd.custom_config.ssl.tls_min_version | default('TLS1.2') }}"
+    tls_max_version: "{{ etcd.custom_config.ssl.tls_max_version | default('TLS1.3') }}"
+    client_transport_security:
+      client_auth: "{{ etcd.custom_config.ssl.client_transport_security.client_auth | default(false) }}"
+      auto_tls: "{{ etcd.custom_config.ssl.client_transport_security.auto_tls | default(false) }}"
+      ca_file: "{{ etcd_ssl_dir }}/client/etcd.ca.pem"
+      cert_file: "{{ etcd_ssl_dir }}/client/etcd.server.pem"
+      key_file: "{{ etcd_ssl_dir }}/client/etcd.server.key"
+    peer_transport_security:
+      client_auth: "{{ etcd.custom_config.ssl.peer_transport_security.client_auth | default(false) }}"
+      auto_tls: "{{ etcd.custom_config.ssl.peer_transport_security.auto_tls | default(false) }}"
+      ca_file: "{{ etcd_ssl_dir }}/peer/etcd.ca.pem"
+      cert_file: "{{ etcd_ssl_dir }}/peer/etcd.server.pem"
+      key_file: "{{ etcd_ssl_dir }}/peer/etcd.server.key"
+      allowed_cn: "{{ etcd.custom_config.ssl.peer_transport_security.allowed_cn | default() }}"
