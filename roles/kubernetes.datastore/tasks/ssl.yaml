@@ -16,6 +16,7 @@
     owner: root
     group: root
     mode: "0644"
+    remote_src: false
   loop:
     - "{{ etcd_config.ssl.client_transport_security.ca_file }}"
     - "{{ etcd_config.ssl.peer_transport_security.ca_file }}"
@@ -27,6 +28,7 @@
     owner: root
     group: root
     mode: "0644"
+    remote_src: false
   loop:
     - "{{ etcd_config.ssl.client_transport_security.cert_file }}"
     - "{{ etcd_config.ssl.peer_transport_security.cert_file }}"
@@ -38,7 +40,7 @@
     owner: root
     group: root
     mode: "0640"
+    remote_src: false
   loop:
     - "{{ etcd_config.ssl.client_transport_security.key_file }}"
     - "{{ etcd_config.ssl.peer_transport_security.key_file }}"
-
