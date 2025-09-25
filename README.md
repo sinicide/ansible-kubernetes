@@ -19,11 +19,12 @@ Ansible Playbook for a Green Field Deployment Kubernetes Cluster
 - [x] Create Kubernetes Metrics Role
 - [ ] Create a Task to rebalance the Nodes after new Node joins
 - [ ] Create TLS play for using custom TLS and rotating/renewing certs
+- [x] Create External ETCD deployment
+- [x] Create k8s deployment to use external etcd
 
 ## Wish list
 
 - Deploy Kubernetes Dashboard
-- Deploy External ETCD
 - Add TLS configuration for argocd
 - Properly configure kubelet for TLS
 
@@ -58,4 +59,3 @@ The below will upgrade kubernetes.
 ```
 ansible-playbook -i hosts.yaml upgrade_k8s.yaml
 ```
-
