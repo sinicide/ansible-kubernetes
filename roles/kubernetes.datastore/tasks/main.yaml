@@ -1,59 +1,29 @@
 ---
-- name: Check for {{ etcd_bin_path }}/etcd
+# TODO:
+# - [ ] Create Cluster Discovery workflow
+- name: Check for etcd binary
   stat:
     path: "{{ etcd_bin_path }}/etcd"
   register: etcd_present
 
-- name: Check for {{ etcd_bin_path }}/etcdctl
-  stat:
-    path: "{{ etcd_bin_path }}/etcdctl"
-  register: etcdctl_present
-
-# if service exists, ensure we're stopping service
-- include_tasks: stop_etcd.yaml
-  when: ( etcd_present.stat.exists ) or ( etcdctl_present.stat.exists )
-
-- name: Download etcd Binary to /tmp
-  get_url:
-    url: "{{ etcd_download_url }}"
-    dest: "/tmp/etcd.tar.gz"
-    owner: root
-    group: root
-    mode: 0600
-    force: True
-
-- name: Extract etcd and etcdctl
+- name: Download and Extract etcd binaries
   unarchive:
-    src: "/tmp/etcd.tar.gz"
-    dest: "/tmp/"
-    owner: root
-    group: root
-    mode: 0600
-    decrypt: True
-    remote_src: True
+    src: "{{ etcd_download_url }}"
+    dest: "/tmp"
+    remote_src: true
 
-- name: Copy etcd to /usr/bin
+- name: Copy etcd binaries to /usr/bin
   copy:
-    src: "/tmp/etcd-{{ etcd_version }}-linux-{{ arch }}/etcd"
-    dest: "/usr/bin/etcd"
+    src: "/tmp/etcd-v{{ etcd_version }}-linux-{{ arch }}/{{ item }}"
+    dest: "/usr/bin/"
     owner: root
     group: root
-    mode: '0755'
+    mode: "0755"
     remote_src: yes
-
-- name: Copy etcdctl to /usr/bin
-  copy:
-    src: "/tmp/etcd-{{ etcd_version }}-linux-{{ arch }}/etcdctl"
-    dest: "/usr/bin/etcdctl"
-    owner: root
-    group: root
-    mode: '0755'
-    remote_src: yes
-
-- name: Clean up /tmp
-  file:
-    state: absent
-    path: "/tmp/etcd-{{ etcd_version }}-linux-{{ arch }}/"
+  loop:
+    - "etcd"
+    - "etcdctl"
+    - "etcdutl"
 
 - name: Create etcd user
   user:
@@ -63,53 +33,71 @@
     comment: "ETCD nologin user"
   become: true
 
-- name: Create etcd data directory
+- name: Create etcd data dir
   file:
-    path: "{{ etcd_parameters.data_dir }}/{{ hostvars[inventory_hostname]['ansible_facts']['hostname'] }}.etcd"
-    state: directory
+    path: "{{ etcd_config.data_dir }}"
     owner: "{{ etcd_user }}"
-    group: root
+    group: "{{ etcd_group }}"
+    state: directory
+
+- name: Clean up /tmp
+  file:
+    state: absent
+    path: "/tmp/etcd-v{{ etcd_version }}-linux-{{ arch }}/"
+
+- include_tasks: ssl_certs.yaml
+  when:
+    - etcd_config.ssl.enabled
+    - etcd_config.ssl.peer_transport_security.auto_tls == false
+    - etcd_config.ssl.client_transport_security.auto_tls == false
+
+- name: Create etcd config dir
+  file:
+    path: "{{ etcd_config.config_dir }}"
+    owner: "{{ etcd_user }}"
+    group: "{{ etcd_group }}"
+    state: directory
+
+- name: Copying etcd config
+  template:
+    src: "../templates/etcd.conf.yml.j2"
+    dest: "{{ etcd_config.config_dir }}/etcd.conf.yml"
+    owner: "{{ etcd_user }}"
+    group: "{{ etcd_group }}"
+    mode: "0660"
 
 - name: Create Service File
   template:
-    src: "../templates/etcd_service.j2"
+    src: "../templates/etcd.service.j2"
     dest: "{{ etcd_system_service }}"
     owner: root
     group: root
-    mode: '0644'
+    mode: "0644"
 
-- name: Copying etcd.env File
-  template:
-    src: "../templates/etcd_env.j2"
-    dest: "{{ env_file }}"
-    owner: root
-    group: root
-    mode: '0644'
+- name: Start etcd
+  systemd:
+    enabled: true
+    state: started
+    name: etcd
 
-- include_tasks: ssl_certs.yaml
-  
-- name: Copying etcd config
-  template:
-    src: "../templates/etcd_conf.j2"
-    dest: "{{ etcd_config_file_path }}"
-    owner: "{{ etcd_user }}"
-    group: root
-    mode: '0660'
+- name: Wait for etcd service to start
+  wait_for:
+    host: "localhost"
+    port: "{{ etcd_config.client_port }}"
+    delay: 5
+    timeout: 30
+    state: started
+    msg: "Waiting for etcd service"
 
-- include_tasks: restart_etcd.yaml
+- name: Check etcd health
+  shell: "{{ etcd_health_check_command }}"
+  args:
+    executable: /bin/bash
+  register: etcd_health_output
 
-- name: set ETCDCTL_API environment variable to 3
-  lineinfile:
-    path: "/etc/profile"
-    line: "export ETCDCTL_API=3"
-    state: present
-    create: true
-    insertafter: EOF
-
-- name: Register etcd parameters for k3s
-  add_host:
-    name: "dummy_etcd_node"
-    etcd_k3s_endpoints: "{{ etcd_datastore_endpoints }}"
-    etcd_k3s_cafile: "{{ etcd_parameters.client_transport_security.trusted_ca_file }}"
-    etcd_k3s_certfile: "{{ etcd_parameters.client_transport_security.cert_file }}"
-    etcd_k3s_keyfile: "{{ etcd_parameters.client_transport_security.key_file }}"
+- name: etcd health check passed
+  assert:
+    that:
+      - etcd_health_output.rc == 0
+    fail_msg: "etcd health check failed!"
+    success_msg: "etcd health check passed!"
