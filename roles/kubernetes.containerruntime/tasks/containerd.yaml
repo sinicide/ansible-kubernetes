@@ -8,7 +8,7 @@
   when:
     - ansible_os_family == "Debian"
 
-- name: Set default configs
+- name: Generate default configs
   shell: "containerd config default > /etc/containerd/config.toml"
   become: true
   args:
@@ -27,3 +27,19 @@
     state: started
     enabled: true
     daemon_reload: true
+
+- name: Check crictl info dump
+  shell: 'crictl info | grep ''SystemdCgroup = "true"'''
+  become: yes
+  args:
+    executable: "/bin/bash"
+  register: crictl_output
+  failed_when: false
+  changed_when: false
+
+- name: Trigger restart of containerd service
+  debug:
+    msg: "A restart is needed"
+  when: crictl_output.rc != 0
+  notify:
+    - Restart containerd
