@@ -33,6 +33,13 @@
     (calico_version_found.stdout is version(calico_version, '<')))
 
 # note replace command might fail sometimes due to resource not yet existing, so create needs to be ran before replace
+- name: Create/Replace Calico CRDs
+  shell: "kubectl --kubeconfig {{ kube_user_config }} {% if calico_ds_count.stdout|int == 0 %}create{% else %}replace{% endif %} -f {{ calico_operator_crd_destination }}"
+  become: no
+  register: calico_operator_upgrade
+  when: (( calico_ds_count.stdout|int == 0 ) or
+    (calico_version_found.stdout is version(calico_version, '<')))
+
 - name: Create/Replace Calico Operator
   shell: "kubectl --kubeconfig {{ kube_user_config }} {% if calico_ds_count.stdout|int == 0 %}create{% else %}replace{% endif %} -f {{ calico_operator_destination }}"
   become: no
