@@ -10,29 +10,29 @@
   changed_when: false
 
 - name: Check for existing version
-  shell: "kubectl --kubeconfig {{ kube_user_config }} get deployment -n metallb-system controller -o jsonpath=\"{.spec.template.spec.containers[0].image}\" | awk -F ':v' '{print $2}'"
+  shell: 'kubectl --kubeconfig {{ kube_user_config }} get deployment -n metallb-system controller -o jsonpath="{.spec.template.spec.containers[0].image}" | awk -F '':v'' ''{print $2}'''
   become: no
   register: metallb_current_version
   when: "( metallb_controller_count.stdout|int > 0 )"
 
 - name: Current Version of Metallb Deployment on host
   debug:
-    msg: 
-    - "{% if metallb_controller_count.stdout|int > 0 %}Current Version Found {{ metallb_current_version.stdout }}{% else %}No Version Found{% endif %}"
-    - "Version to be installed {{ metallb_version }}"
+    msg:
+      - "{% if metallb_controller_count.stdout|int > 0 %}Current Version Found {{ metallb_current_version.stdout }}{% else %}No Version Found{% endif %}"
+      - "Version to be installed {{ metallb_version }}"
 
 - name: Downloading Metallb manifest
   get_url:
     url: "{{ metallb_manifest }}"
     dest: "{{ metallb_destination }}"
-  when: ((metallb_controller_count.stdout == 0) or 
+  when: ((metallb_controller_count.stdout|int == 0) or
     (metallb_current_version.stdout is version(metallb_version, '<')))
 
 - name: Applying Metallb Manifest
   shell: "kubectl --kubeconfig {{ kube_user_config }} {% if metallb_controller_count.stdout|int == 0 %}create{% else %}apply{% endif %} -f {{ metallb_destination }}"
   become: no
   register: metallb_manifest_apply
-  when: (( metallb_controller_count.stdout|int >= 0 ) or 
+  when: (( metallb_controller_count.stdout|int >= 0 ) or
     (metallb_current_version.stdout is version(metallb_version, '<')))
 
 # [ ] Check to see if controller and speakers are running?
@@ -63,4 +63,3 @@
   shell: "kubectl --kubeconfig {{ kube_user_config }} apply -f {{ metallb_layer2_temp_directory }}/{{ metallb_layer2_prefix }}-{{ item.name }}.yaml"
   become: no
   loop: "{{ metallb.layer2 }}"
-
