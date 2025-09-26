@@ -9,8 +9,8 @@ etcd_group: "{{ etcd_user }}"
 etcd_ssl_dir: "/var/private/ssl/etcd"
 etcd_health_check_command: "etcdctl {% if etcd_config.ssl.enabled %}--insecure-skip-tls-verify=true {% endif %}--endpoints={{ etcd_config.protocol }}://localhost:{{ etcd_config.client_port }} endpoint health"
 
-# etcd cluster type "stacked" or "external", default "stacked" is to no deploy etcd
-etcd_cluster_type: "{{ etcd.type | default('stacked') }}"
+# etcd cluster type "local" or "external", default "local" or called stacked which is deployed as a container in kubernetes
+etcd_cluster_type: "{{ etcd.type | default('local') }}"
 
 # cluster bootstrapping type 'static' or 'discovery'
 bootstrap_type: "static"
