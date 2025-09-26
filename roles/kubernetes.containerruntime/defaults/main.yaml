@@ -1,5 +1,5 @@
 # container runtime for kubernetes: containerd, cri-o, docker engine
-container_runtime_engine: "{{ container_runtime_engine | default('containerd') }}"
+runtime_engine: "{{ container_runtime_engine | default('containerd') }}"
 
 # Docker version to install
 docker_ce_version: ""
@@ -22,7 +22,7 @@ distro: "{% if arch == 'arm64' %}eoan{% else %}{{ ansible_distribution_release }
 docker:
   apt_key: "https://download.docker.com/linux/ubuntu/gpg"
   keyring_path: "/usr/share/keyrings/docker-archive-keyring.gpg"
-  apt_repo: "deb [arch={{ arch }} signed-by={{ docker_keyring_path }}] https://download.docker.com/linux/ubuntu {{ distro }} stable"
+  apt_repo: "deb [arch={{ arch }} signed-by={{ docker.keyring_path }}] https://download.docker.com/linux/ubuntu {{ distro }} stable"
 
 containerd:
 
