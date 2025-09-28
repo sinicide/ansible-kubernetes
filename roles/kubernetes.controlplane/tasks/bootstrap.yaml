@@ -1,4 +1,6 @@
 ---
+- include_tasks: check_cri.yaml
+
 - name: Start kubelet service
   systemd:
     name: kubelet
