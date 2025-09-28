@@ -25,5 +25,5 @@
     executable: "/bin/bash"
   delegate_to: "{{ groups['bootstrap'][0] }}"
   delegate_facts: true
-  fail_when: false
+  failed_when: false
   when: "kube_worker|d(false) == true"
