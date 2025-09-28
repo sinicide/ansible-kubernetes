@@ -49,8 +49,8 @@
     join_certificate_key: "{{ regen_certificate_key.stdout }}"
   run_once: true
 
-# - debug:
-#     msg:
-#       - "join_token: {{ join_token }}"
-#       - "ca_cert_hash: {{ join_ca_cert_hash }}"
-#       - "certificate-key: {{ join_certificate_key }}"
+- debug:
+    msg:
+      - "join_token: {{ join_token }}"
+      - "ca_cert_hash: {{ join_ca_cert_hash }}"
+      - "certificate-key: {{ join_certificate_key }}"
