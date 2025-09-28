@@ -18,34 +18,32 @@
       - "{% if calico_ds_count.stdout|int > 0 %}Calico Version Found {{ calico_version_found.stdout }}{% else %}No Calico version found{% endif %}"
       - "Calico Version to be installed {{ calico_version }}"
 
+- name: Check for Calico CRDs
+  shell: "kubectl --kubeconfig {{ kube_user_config }} get crd | grep -c calico"
+  become: no
+  register: calico_crd_check
+  changed_when: false
+  failed_when: false
+
 - name: Download Calico Operator {{ calico_version }} crds
   get_url:
     url: "{{ calico_operator_crd_url }}"
     dest: "{{ calico_operator_crd_destination }}"
-  when: (( calico_ds_count.stdout|int == 0 ) or
-    (calico_version_found.stdout is version(calico_version, '<')))
 
 - name: Download Calico Operator {{ calico_version }} yaml
   get_url:
     url: "{{ calico_operator_url }}"
     dest: "{{ calico_operator_destination }}"
-  when: (( calico_ds_count.stdout|int == 0 ) or
-    (calico_version_found.stdout is version(calico_version, '<')))
 
-# note replace command might fail sometimes due to resource not yet existing, so create needs to be ran before replace
-- name: Create/Replace Calico CRDs
-  shell: "kubectl --kubeconfig {{ kube_user_config }} {% if calico_ds_count.stdout|int == 0 %}create{% else %}replace{% endif %} -f {{ calico_operator_crd_destination }}"
+- name: Create/Apply Calico CRDs
+  shell: "kubectl --kubeconfig {{ kube_user_config }} {% if calico_crd_check.stdout|int == 0 %}create{% else %}apply --server-side --force-conflicts{% endif %} -f {{ calico_operator_crd_destination }}"
+  become: no
+  register: calico_crd_upgrade
+
+- name: Create/Apply Calico Operator
+  shell: "kubectl --kubeconfig {{ kube_user_config }} {% if calico_crd_check.stdout|int == 0 %}create{% else%}apply --server-side --force-conflicts{% endif %} -f {{ calico_operator_destination }}"
   become: no
   register: calico_operator_upgrade
-  when: (( calico_ds_count.stdout|int == 0 ) or
-    (calico_version_found.stdout is version(calico_version, '<')))
-
-- name: Create/Replace Calico Operator
-  shell: "kubectl --kubeconfig {{ kube_user_config }} {% if calico_ds_count.stdout|int == 0 %}create{% else %}replace{% endif %} -f {{ calico_operator_destination }}"
-  become: no
-  register: calico_operator_upgrade
-  when: (( calico_ds_count.stdout|int == 0 ) or
-    (calico_version_found.stdout is version(calico_version, '<')))
 
 - name: Copy calico-custom-resources.yaml
   template:
