@@ -163,6 +163,7 @@
   tasks:
     - import_role:
         name: kubernetes.metrics
+      when: "kube_metrics_enabled == true"
 
 # Deploy Metallb?
 - name: Deploy Metallb
