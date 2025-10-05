@@ -1,5 +1,7 @@
 ---
-- include_tasks: check_cri.yaml
+- import_role:
+    name: kubernetes.containerruntime
+    tasks_from: check_cri.yaml
 
 - name: Start kubelet service
   systemd:
