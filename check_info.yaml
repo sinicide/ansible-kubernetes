@@ -76,6 +76,7 @@
       become: no
       register: metallb_current_version
       when: "( metallb_controller_count.stdout|int > 0 )"
+      changed_when: false
 
     - name: Current Version of Metallb Deployment on host
       debug:
