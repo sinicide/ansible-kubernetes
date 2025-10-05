@@ -19,14 +19,14 @@ kube_update_config_path: "/tmp/{{ kube_update_config_name }}"
 
 apiserver_default_port: 6443
 
-kube_lb_api_endpoint: "{{ kube.api.lb_endpoint|d('') }}"
-kube_lb_api_port: "{% if kube.api.lb_endpoint is defined %}{{ kube.api.lb_port|d(apiserver_default_port) }}{% endif %}"
+kube_bootstrap_api_endpoint: "{{ kube.api.lb_endpoint|d(hostvars[control_plane_nodes[0]]['ansible_default_ipv4']['address']) }}"
+kube_bootstrap_api_port: "{{ kube.api.lb_port|d(apiserver_default_port) }}"
 
 node:
   labels: []
 
 # Calico Version
-calico_version: "3.25.1"
+calico_version: "3.30.3"
 
 # MetalLB Version
 metallb_version: "0.13.9"
@@ -35,7 +35,10 @@ metallb_version: "0.13.9"
 longhorn_version: "1.4.2"
 
 # Metrics Server Version
+kube_metrics_enabled: "{{ kube.cluster.metrics.enabled|d(false) }}"
 metrics_server_version: "0.6.4"
 
 # SSL
 ssl_enabled: false
+# Container Runtime default "containerd", "cri-o"
+runtime_engine: "{{ container_runtime_engine|d('containerd') }}"
