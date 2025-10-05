@@ -5,4 +5,4 @@
 
 # Install CRI-O
 - include_tasks: crio.yaml
-  when: runtime_engine == 'crio'
+  when: runtime_engine == 'cri-o'
