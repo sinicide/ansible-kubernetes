@@ -28,7 +28,7 @@ containerd:
 
 crio_version: "1.34"
 crio_packages:
-  - "crio"
+  - "cri-o"
   - "runc"
 
 crio:
