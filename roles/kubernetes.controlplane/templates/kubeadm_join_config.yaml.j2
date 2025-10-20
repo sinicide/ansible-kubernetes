@@ -2,7 +2,7 @@ apiVersion: kubeadm.k8s.io/v1beta3
 kind: JoinConfiguration
 nodeRegistration:
   name: "{{ ansible_fqdn }}"
-  criSocket: unix:///var/run/containerd/containerd.sock
+  criSocket: "{{ kube_init_cri_socket }}"
   imagePullPolicy: IfNotPresent
   taints: null
   kubeletExtraArgs:
@@ -10,7 +10,7 @@ nodeRegistration:
 discovery:
   bootstrapToken:
     token: {{ join_token }}
-    apiServerEndpoint: {{ kube_lb_api_endpoint }}:{{ kube_lb_api_port }}
+    apiServerEndpoint: {{ kube_bootstrap_api_endpoint }}:{{ kube_bootstrap_api_port }}
     caCertHashes:
       - "sha256:{{ join_ca_cert_hash }}"
     unsafeSkipCAVerification: true
