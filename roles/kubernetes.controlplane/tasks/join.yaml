@@ -1,10 +1,4 @@
 ---
-- name: Start kubelet service
-  systemd:
-    name: kubelet
-    state: started
-  register: kubelet_status
-
 - name: Check for existing kube-config
   stat:
     path: "{{ kube_user_config }}"
@@ -28,8 +22,11 @@
     msg: "{{ kubeadm_join_output.stdout }}"
   when: "(kube_config_check.stat.exists == false)"
 
-- name: Wait for 30 seconds
-  wait_for:
-    timeout: 30
+- name: Assert that Join was successful
+  assert:
+    that: "kubeadm_join_output.rc == 0"
+    fail_msg: "kubeadmn join was not successful"
+    success_msg: "kubeadm join was successful"
+  when: "(kube_config_check.stat.exists == false)"
 
 - include_tasks: copy_kubeconfig.yaml
