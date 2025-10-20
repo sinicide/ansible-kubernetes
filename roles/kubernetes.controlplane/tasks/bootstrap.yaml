@@ -1,13 +1,7 @@
 ---
 - import_role:
     name: kubernetes.containerruntime
-    tasks_from: check_cri.yaml
-
-- name: Start kubelet service
-  systemd:
-    name: kubelet
-    state: started
-  register: kubelet_status
+    tasks_from: check_crio.yaml
 
 - name: Check for existing kube-config
   stat:
@@ -31,6 +25,13 @@
 
 - debug:
     msg: "{{ kubeadm_init_output.stdout }}"
+  when: "(user_kube_config.stat.exists == false)"
+
+- name: Assert that kubeadm init was successful
+  assert:
+    that: "kubeadm_init_output.rc == 0"
+    fail_msg: "kubeadm init was not successful"
+    success_msg: "kubeadm init was successful"
   when: "(user_kube_config.stat.exists == false)"
 
 - include_tasks: copy_kubeconfig.yaml
