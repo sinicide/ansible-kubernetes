@@ -2,7 +2,7 @@ apiVersion: kubeadm.k8s.io/v1beta3
 kind: InitConfiguration
 nodeRegistration:
   name: "{{ ansible_fqdn }}"
-  criSocket: unix:///var/run/containerd/containerd.sock
+  criSocket: "{{ kube_init_cri_socket }}"
   imagePullPolicy: IfNotPresent
   taints: null
   kubeletExtraArgs:
@@ -17,7 +17,7 @@ kubernetesVersion: {{ kube_controlplane_version }}
 imageRepository: {{ kube_cluster_image_repo }}
 {% if kube_cluster_name %}clusterName: "{{ kube_cluster_name }}"
 {% endif %}
-{% if kube_lb_api_endpoint or etcd_external_endpoints %}controlPlaneEndpoint: "{{ kube_lb_api_endpoint }}:{{ kube_lb_api_port }}"
+{% if kube_bootstrap_api_endpoint or etcd_external_endpoints %}controlPlaneEndpoint: "{{ kube_bootstrap_api_endpoint }}:{{ kube_bootstrap_api_port }}"
 {% endif %}
 networking:
   dnsDomain: {{ kube_cluster_dns_domain }}
