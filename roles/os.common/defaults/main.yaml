@@ -12,5 +12,6 @@ apt_os_packages:
   - ntp
   - jq
   - nfs-common
+  - net-tools
 
 vm_timezone: "America/Chicago"
