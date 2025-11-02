@@ -2,6 +2,8 @@ kube_controlplane_version: "v{{ kubernetes_version }}"
 kube_user: "{{ ansible_user | default(root) }}"
 kube_home: "{% if kube_user == 'root' %}/root{% else %}/home/{{kube_user}}{% endif %}"
 
+kube_init_cri_socket: "{% if runtime_engine == 'cri-o' %}unix:///var/run/crio/crio.sock{% else %}unix:///var/run/containerd/containerd.sock{% endif %}"
+
 kube_local_api_endpoint: "{{ ansible_eth0.ipv4.address }}"
 kube_local_api_port: "{% if overrides.kube.api.local_port is defined %}{{ overrides.kube.api.local_port }}{% else %}{{ kube.api.local_port|d(apiserver_default_port) }}{% endif %}"
 kube_cluster_pod_cidr: "{{ kube.cluster.pod_cidr|d('10.69.0.0/16') }}"
@@ -12,14 +14,22 @@ kube_cluster_image_repo: "{{ kube.cluster.image_repo|d('registry.k8s.io') }}"
 
 # local or external
 etcd_type: "{{ etcd.type|d('local') }}"
-etcd_local_data_dir: "{{ etcd.data_dir|d('/var/lib/etcd') }}"
-etcd_local_extra_args: "{{ etcd.local.extra_args|d('') }}"
+etcd_local_data_dir: "{{ etcd.custom_config.data_dir|d('/var/lib/etcd') }}"
+etcd_local_extra_args: "{{ etcd.custom_config.extra_args|d('') }}"
+etcd_args:
+  - "snapshot-count=10000"
+  - "heartbeat-interval=100"
+  - "election-timeout=1000"
+  - "quota-backend-bytes=0"
+  - "max-snapshots=5"
+  - "max-wals=5"
+# TODO: get list of hostnames from controlplane group this will auto populate server and peer SANs
 etcd_local_server_cert_sans: "{{ etcd.local.server_cert_sans|d('') }}"
 etcd_local_peer_cert_sans: "{{ etcd.local.peer_cert_sans|d('') }}"
 etcd_external_endpoints: "{{ etcd.external.endpoints|d('') }}"
-etcd_external_ca_file: "{{ etcd.external.ca_file|d('') }}"
-etcd_external_cert_file: "{{ etcd.external.cert_file|d('') }}"
-etcd_external_key_file: "{{ etcd.external.key_file|d('') }}"
+etcd_external_ca_file: "{{ etcd.custom_config.ssl.ca_file|d('') }}"
+etcd_external_cert_file: "{{ etcd.custom_config.ssl.cert_file|d('') }}"
+etcd_external_key_file: "{{ etcd.custom_config.ssl.key_file|d('') }}"
 
 # kubeadm config and join files
 kube_init_config_name: "kubeadm_init_config.yaml"
@@ -29,7 +39,7 @@ kube_join_config_path: "/tmp/{{ kube_join_config_name }}"
 kube_join_timeout: "5m"
 
 # apiserver
-kube_api_server_default_extra_args: [{'authorization-mode':'Node,RBAC'}]
+kube_api_server_default_extra_args: [{ "authorization-mode": "Node,RBAC" }]
 kube_api_server_extra_args: "{{ kube.server.extra_args|d([{}]) }}"
 kube_api_server_combined_extra_args: "{{ kube_api_server_default_extra_args|combine( kube_api_server_extra_args ) }}"
 kube_api_server_extra_volumes: "{{ kube.server.extra_volumes|d('') }}"
