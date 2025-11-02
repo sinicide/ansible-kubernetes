@@ -1,0 +1,6 @@
+---
+- import_tasks: check_containerd.yaml
+  when: runtime_engine == "containerd"
+
+- import_tasks: check_crio.yaml
+  when: runtime_engine == "cri-o"
