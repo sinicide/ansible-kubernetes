@@ -1,0 +1,15 @@
+---
+- name: Check crictl info dump
+  shell: 'crictl info | grep ''SystemdCgroup = "true"'''
+  become: yes
+  args:
+    executable: "/bin/bash"
+  register: crictl_output
+  failed_when: false
+  changed_when: false
+
+- name: Trigger a restart of containerd
+  systemd:
+    name: containerd
+    state: restarted
+  when: "crictl_output.rc != 0"
