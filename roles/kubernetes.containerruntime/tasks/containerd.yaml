@@ -1,4 +1,5 @@
 ---
+# It's just easier to install containerd from docker's repo
 - include_tasks: docker_repo.yaml
 
 - name: Install Containerd Runtime
@@ -7,6 +8,14 @@
     state: present
   when:
     - ansible_os_family == "Debian"
+
+# install crictl
+- name: Extract crictl cli
+  unarchive:
+    src: "{{ crictl_download_url }}"
+    dest: "/usr/local/bin"
+    remote_src: true
+    validate_certs: true
 
 - name: Generate default configs
   shell: "containerd config default > /etc/containerd/config.toml"
@@ -28,18 +37,4 @@
     enabled: true
     daemon_reload: true
 
-- name: Check crictl info dump
-  shell: 'crictl info | grep ''SystemdCgroup = "true"'''
-  become: yes
-  args:
-    executable: "/bin/bash"
-  register: crictl_output
-  failed_when: false
-  changed_when: false
-
-- name: Trigger restart of containerd service
-  debug:
-    msg: "A restart is needed"
-  when: crictl_output.rc != 0
-  notify:
-    - Restart containerd
+- include_tasks: check_containerd.yaml
