@@ -1,7 +1,7 @@
 ---
 - import_role:
     name: kubernetes.containerruntime
-    tasks_from: check_crio.yaml
+    tasks_from: check_runtime.yaml
 
 - name: Check for existing kube-config
   stat:
