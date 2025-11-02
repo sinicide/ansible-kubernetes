@@ -1,5 +1,5 @@
 ---
-- name: Get Kubelet Minor Version
+- name: Get Kubelet Minor Version on Host
   shell: "if [ ! -z $(which kubelet) ]; then kubelet --version | awk '{ print $2 }' | grep -oP '([0-9].[0-9]+)'; fi"
   become: yes
   args:
@@ -7,7 +7,7 @@
   register: kubelet_minor_version
   changed_when: false
 
-- name: Get Kubelet Revision
+- name: Get Kubelet Revision on Host
   shell: "if [ ! -z $(which kubelet) ]; then kubelet --version | awk '{ print $2 }' | grep -oP '(?!\\.)([0-9]+)$'; fi"
   become: yes
   args:
@@ -16,7 +16,7 @@
   changed_when: false
 
 - debug:
-      msg: "Will attempt to install v{{ kubernetes_minor_version }}.{{ kubernetes_revision }}-{{ kubernetes_patch }}"
+    msg: "Will attempt to install v{{ kubernetes_minor_version }}.{{ kubernetes_revision }}-{{ kubernetes_patch }}"
 
 - debug:
     msg:
@@ -26,7 +26,7 @@
     - kubelet_minor_version.stdout != ""
     - kubelet_revision.stdout != ""
   failed_when:
-    - kubernetes_minor_version|float != kubelet_minor_version.stdout|float 
+    - kubernetes_minor_version|float != kubelet_minor_version.stdout|float
 
 - include_tasks: k8s_add_repo.yaml
 
