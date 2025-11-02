@@ -1,5 +1,5 @@
-default_node_labels: ['worker=']
+default_node_labels: ["worker="]
 combined_node_labels: "{% if node_labels is defined %}{{ default_node_labels + node_labels }}{% else %}{{ default_node_labels }}{% endif %}"
 kubelet_config_path: "/etc/kubernetes/kubelet.conf"
-join_api_endpoint: "{% if kube_lb_api_endpoint == '' %}{{ ansible_eth0.ipv4.address }}{% else %}{{ kube_lb_api_endpoint }}{% endif %}"
-join_api_port: "{% if kube_lb_api_port == '' %}{{ apiserver_default_port }}{% else %}{{ kube_lb_api_port }}{% endif %}"
+join_api_endpoint: "{{ kube_bootstrap_api_endpoint }}"
+join_api_port: "{{ kube_bootstrap_api_port }}"
