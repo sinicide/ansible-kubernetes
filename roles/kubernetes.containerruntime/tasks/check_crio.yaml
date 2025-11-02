@@ -1,5 +1,5 @@
 ---
-- name: Check crictl info dump
+- name: Check crictl info dump (cri-o)
   shell: "crictl info"
   become: yes
   args:

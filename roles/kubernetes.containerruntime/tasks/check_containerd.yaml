@@ -1,5 +1,5 @@
 ---
-- name: Check crictl info dump
+- name: Check crictl info dump (containerd)
   shell: 'crictl info | grep ''SystemdCgroup = "true"'''
   become: yes
   args:
