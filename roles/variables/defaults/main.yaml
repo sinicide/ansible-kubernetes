@@ -25,6 +25,9 @@ kube_bootstrap_api_port: "{{ kube.api.lb_port|d(apiserver_default_port) }}"
 node:
   labels: []
 
+# ETCD
+etcd_version: "3.6.5"
+
 # Calico Version
 calico_version: "3.30.3"
 
