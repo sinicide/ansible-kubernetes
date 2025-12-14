@@ -21,6 +21,7 @@ Ansible Playbook for a Green Field Deployment Kubernetes Cluster
 - [ ] Create TLS play for using custom TLS and rotating/renewing certs
 - [x] Create External ETCD deployment
 - [x] Create k8s deployment to use external etcd
+- [ ] Fix cri-o runtime issue with short name aliasing
 
 ## Wish list
 
@@ -33,7 +34,7 @@ Ansible Playbook for a Green Field Deployment Kubernetes Cluster
 The below runs everything, you can also specify specific tags
 
 ```
-ansible-playbook -i hosts.yaml all.yaml
+ansible-playbook -i hosts.yaml playbooks/all.yaml
 ```
 
 ## Joining a New Node to existing cluster as a Worker
@@ -41,7 +42,7 @@ ansible-playbook -i hosts.yaml all.yaml
 The following 2 tags are needed to join deploy and join a new node leaving the existing nodes intact.
 
 ```
-ansible-playbook -i hosts.yaml all.yaml --tags=packages,workers
+ansible-playbook -i hosts.yaml playbooks/all.yaml --tags=packages,workers
 ```
 
 ## Running Cluster Info Checker
@@ -49,7 +50,7 @@ ansible-playbook -i hosts.yaml all.yaml --tags=packages,workers
 This will check current kubelet version as well as current CNI (Calico), MetalLB and Longhorn
 
 ```
-ansible-playbook -i hosts.yaml check_info.yaml
+ansible-playbook -i hosts.yaml playbooks/check_info.yaml
 ```
 
 ## Running Upgrade
@@ -57,5 +58,5 @@ ansible-playbook -i hosts.yaml check_info.yaml
 The below will upgrade kubernetes.
 
 ```
-ansible-playbook -i hosts.yaml upgrade_k8s.yaml
+ansible-playbook -i hosts.yaml playbooks/upgrade_k8s.yaml
 ```
