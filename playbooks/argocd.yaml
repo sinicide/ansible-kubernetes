@@ -1,0 +1,25 @@
+---
+- name: Determining Bootstrap Node
+  hosts: controlplanes
+  tags: argocd
+  tasks:
+    - set_fact:
+        control_plane_nodes: "{{ hostvars|dict2items|selectattr('value.group_names','search','controlplanes')|map(attribute='key') }}"
+      run_once: true
+
+    - name: Register Bootstrap
+      add_host:
+        name: "{{ control_plane_nodes[0] }}"
+        groups: bootstrap
+      when: "ansible_host == control_plane_nodes[0]"
+      changed_when: false
+
+- name: Deploy ArgoCD
+  tags: argocd
+  hosts: bootstrap
+  roles:
+    - variables
+  tasks:
+    - import_role:
+        name: argocd
+      when: argocd.enabled|bool

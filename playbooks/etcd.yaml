@@ -1,0 +1,17 @@
+---
+# Install external ETCD
+- name: Deploy External ETCD
+  tags: etcd
+  gather_facts: true
+  hosts: controlplanes
+  roles:
+    - variables
+  tasks:
+    - import_role:
+        name: kubernetes.datastore
+      when:
+        - etcd_cluster_type == 'external'
+        - etcd.endpoints is undefined
+    - import_role:
+        name: kubernetes.datastore
+        tasks_from: check.yaml

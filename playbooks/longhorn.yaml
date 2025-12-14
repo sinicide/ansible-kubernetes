@@ -1,0 +1,41 @@
+---
+- name: Determining Bootstrap Node
+  hosts: controlplanes
+  tags: longhorn
+  tasks:
+    - set_fact:
+        control_plane_nodes: "{{ hostvars|dict2items|selectattr('value.group_names','search','controlplanes')|map(attribute='key') }}"
+      run_once: true
+
+    - name: Register Bootstrap
+      add_host:
+        name: "{{ control_plane_nodes[0] }}"
+        groups: bootstrap
+      when: "ansible_host == control_plane_nodes[0]"
+      changed_when: false
+
+- name: Pre-Apply Longhorn Node Labels
+  tags: longhorn
+  hosts: controlplanes:workers
+  roles:
+    - variables
+  tasks:
+    - import_role:
+        name: longhorn
+        tasks_from: apply_labels.yaml
+      when: longhorn.enabled|bool
+
+- name: Deploy Longhorn Storage
+  tags: longhorn
+  hosts: bootstrap
+  roles:
+    - variables
+  tasks:
+    - import_role:
+        name: longhorn
+        tasks_from: requirements.yaml
+      when: longhorn.enabled|bool
+
+    - import_role:
+        name: longhorn
+      when: longhorn.enabled|bool

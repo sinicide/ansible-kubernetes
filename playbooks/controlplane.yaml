@@ -1,0 +1,94 @@
+---
+- name: Installing Kubernetes
+  tags: packages
+  gather_facts: true
+  hosts: controlplanes
+  roles:
+    - variables
+  tasks:
+    - import_role:
+        name: kubernetes.common
+
+# first host in controlplanes is our bootstrap
+- name: Determining Bootstrap Node
+  hosts: controlplanes
+  tags: bootstrap,cni,join
+  tasks:
+    - set_fact:
+        control_plane_nodes: "{{ hostvars|dict2items|selectattr('value.group_names','search','controlplanes')|map(attribute='key') }}"
+      run_once: true
+
+    - name: Register Bootstrap
+      add_host:
+        name: "{{ control_plane_nodes[0] }}"
+        groups: bootstrap
+      when: "ansible_host == control_plane_nodes[0]"
+      changed_when: false
+
+- name: Initalize Bootstrap
+  hosts: bootstrap
+  tags: bootstrap,join,workers
+  gather_facts: true
+  roles:
+    - variables
+  tasks:
+    - import_role:
+        name: kubernetes.controlplane
+        tasks_from: bootstrap.yaml
+      vars:
+        control_plane_nodes: "{{ control_plane_nodes }}"
+
+- name: Install CNI
+  hosts: bootstrap
+  tags: bootstrap,cni
+  roles:
+    - variables
+  tasks:
+    - import_role:
+        name: kubernetes.cni
+
+- name: Update Cluster Configuration and Certs
+  hosts: controlplanes
+  tags: controlplanes
+  serial: 1
+  roles:
+    - variables
+  tasks:
+    - import_role:
+        name: kubernetes.controlplane
+        tasks_from: group.yaml
+
+- name: Generate Join Facts
+  hosts: controlplanes
+  tags: bootstrap,controlplanes,join
+  gather_facts: false
+  roles:
+    - variables
+  tasks:
+    - import_role:
+        name: kubernetes.controlplane
+        tasks_from: generate_join.yaml
+      run_once: true
+      when: "ansible_host == control_plane_nodes[0]"
+
+- name: Join Additional Control Planes (bootstrap node skipped)
+  hosts: controlplanes
+  gather_facts: false
+  tags: controlplanes,join
+  roles:
+    - variables
+  tasks:
+    - import_role:
+        name: kubernetes.controlplane
+        tasks_from: join.yaml
+      when: "ansible_host != control_plane_nodes[0]"
+
+- name: Applying node labels to Control Plane Nodes
+  hosts: controlplanes
+  tags: bootstrap,controlplanes
+  roles:
+    - variables
+  tasks:
+    - import_role:
+        name: kubernetes.controlplane
+        tasks_from: apply_labels.yaml

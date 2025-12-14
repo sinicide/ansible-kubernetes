@@ -1,0 +1,7 @@
+---
+- name: Installing Container Runtime
+  tags: cri,packages
+  hosts: controlplanes:workers
+  tasks:
+    - import_role:
+        name: kubernetes.containerruntime
